@@ -42,6 +42,15 @@ class TestSkeet : public UnitTest
          test_animate_level2Mixed();
          test_animate_level3Mixed();
          test_animate_level4Mixed();
+         test_animate_level4Bullets();
+
+         test_interact_nothing();
+         test_interact_upEmpty();
+         test_interact_upBullets();
+         test_interact_spaceBullets();
+         test_interact_mBullets();
+         test_interact_bBullets();
+         test_interact_keysBullets();
 
          report("Skeet");
       }
@@ -114,7 +123,13 @@ class TestSkeet : public UnitTest
          // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
          s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
       }
 
       void test_spawn_level2Empty()
@@ -180,7 +195,13 @@ class TestSkeet : public UnitTest
          // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
          s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
       }
 
       void test_spawn_level3Empty()
@@ -253,7 +274,13 @@ class TestSkeet : public UnitTest
          // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
          s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
       }
 
       void test_spawn_level4Empty()
@@ -334,7 +361,13 @@ class TestSkeet : public UnitTest
          // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
          s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
       }
 
       void test_animate_level1Empty()
@@ -422,6 +455,14 @@ class TestSkeet : public UnitTest
          // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
+         s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
+
          s.birds.clear();
       }
 
@@ -512,7 +553,13 @@ class TestSkeet : public UnitTest
          // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
          s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
       }
 
       void test_animate_level3Empty()
@@ -586,7 +633,6 @@ class TestSkeet : public UnitTest
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
             assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            // Floater default points is 15
             assertEquals(15, (*it)->points);
          }
 
@@ -608,7 +654,13 @@ class TestSkeet : public UnitTest
          // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
          s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
       }
 
       void test_animate_level4Empty()
@@ -671,14 +723,14 @@ class TestSkeet : public UnitTest
             assertEqualsTolerance(15.0, (*it)->radius, tolerance);
             assertEquals(18, (*it)->points);
 
-            // Sinker (points=25)
+            // Sinker (explicit points 25)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
             assertEqualsTolerance(15.0, (*it)->radius, tolerance);
             assertEquals(25, (*it)->points);
 
-            // Floater (points=25)
+            // Floater (explicit points 25)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
@@ -693,25 +745,20 @@ class TestSkeet : public UnitTest
             assertEquals(30, (*it)->points);
          }
 
-         // Time should have advanced by one frame (framesLeft decremented)
+         // spawn() should not change time.framesLeft
          assertEquals(FRAMES_PER_SECOND * 15 - 1, s.time.framesLeft);
-
-         // Other state should remain unchanged
-         assertEqualsTolerance(1.234, s.gun.angle, tolerance);
-         assertEqualsTolerance(5.0, s.gun.pt.x, tolerance);
-         assertEqualsTolerance(6.0, s.gun.pt.y, tolerance);
-         assertEquals(1234, s.score.points);
-         assertEquals(10, s.hitRatio.numKilled);
-         assertEquals(5, s.hitRatio.numMissed);
-         assertEqualsTolerance(dimensions.x, s.dimensions.x, tolerance);
-         assertEqualsTolerance(dimensions.y, s.dimensions.y, tolerance);
-         assertEquals(false, s.bullseye);
 
          // TEARDOWN
          // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
          s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
       }
 
       void test_animate_level1Mixed()
@@ -732,29 +779,29 @@ class TestSkeet : public UnitTest
          Bird::dimensions = dimensions;
 
          // Create two Standard birds and place them in the game
-         Standard *b1 = new Standard(30.0); // will be adjusted below
-         Standard *b2 = new Standard(30.0);
+         Standard *standard1 = new Standard(30.0); // will be adjusted below
+         Standard *standard2 = new Standard(30.0);
 
          // Explicitly set positions and velocities (direct member access)
-         b1->pt.x = 50.0;
-         b1->pt.y = 30.0;
-         b1->v.dx = 5.0;
-         b1->v.dy = 2.0;
-         b1->dead = false;
-         b1->radius = 30.0;
-         b1->points = 10;
+         standard1->pt.x = 50.0;
+         standard1->pt.y = 30.0;
+         standard1->v.dx = 5.0;
+         standard1->v.dy = 2.0;
+         standard1->dead = false;
+         standard1->radius = 30.0;
+         standard1->points = 10;
 
-         b2->pt.x = 40.0;
-         b2->pt.y = 70.0;
-         b2->v.dx = 3.0;
-         b2->v.dy = -4.0;
-         b2->dead = false;
-         b2->radius = 30.0;
-         b2->points = 10;
+         standard2->pt.x = 40.0;
+         standard2->pt.y = 70.0;
+         standard2->v.dx = 3.0;
+         standard2->v.dy = -4.0;
+         standard2->dead = false;
+         standard2->radius = 30.0;
+         standard2->points = 10;
 
          // Add to skeet
-         s.birds.push_back(b1);
-         s.birds.push_back(b2);
+         s.birds.push_back(standard1);
+         s.birds.push_back(standard2);
 
          // Explicitly set other state that should remain unchanged
          s.gun.angle = 0.75;
@@ -772,15 +819,11 @@ class TestSkeet : public UnitTest
 
          // Save expected positions after a Standard::advance()
          // advance() does: v *= 0.995; pt.add(v);
-         double b1_dx_after = 5.0 * 0.995; // 4.975
-         double b1_dy_after = 2.0 * 0.995; // 1.99
-         double b1_x_expected = 50.0 + b1_dx_after;
-         double b1_y_expected = 30.0 + b1_dy_after;
+         double standard1Dx = 5.0 * 0.995; // 4.975
+         double standard1Dy = 2.0 * 0.995; // 1.99
 
-         double b2_dx_after = 3.0 * 0.995;  // 2.985
-         double b2_dy_after = -4.0 * 0.995; // -3.98
-         double b2_x_expected = 40.0 + b2_dx_after;
-         double b2_y_expected = 70.0 + b2_dy_after;
+         double standard2Dx = 3.0 * 0.995;  // 2.985
+         double standard2Dy = -4.0 * 0.995; // -3.98
 
          // EXERCISE
          s.animate();
@@ -796,8 +839,10 @@ class TestSkeet : public UnitTest
             // First bird: our b1 advanced
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(b1_x_expected, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(b1_y_expected, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(standard1Dx, (*it)->v.dx, tolerance);
+            assertEqualsTolerance(standard1Dy, (*it)->v.dy, tolerance);
+            assertEqualsTolerance(50.0 + standard1Dx, (*it)->pt.x, tolerance);
+            assertEqualsTolerance(30.0 + standard1Dy, (*it)->pt.y, tolerance);
             assertEqualsTolerance(30.0, (*it)->radius, tolerance);
             assertEquals(10, (*it)->points);
 
@@ -805,8 +850,10 @@ class TestSkeet : public UnitTest
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(b2_x_expected, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(b2_y_expected, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(standard2Dx, (*it)->v.dx, tolerance);
+            assertEqualsTolerance(standard2Dy, (*it)->v.dy, tolerance);
+            assertEqualsTolerance(40.0 + standard2Dx, (*it)->pt.x, tolerance);
+            assertEqualsTolerance(70.0 + standard2Dy, (*it)->pt.y, tolerance);
             assertEqualsTolerance(30.0, (*it)->radius, tolerance);
             assertEquals(10, (*it)->points);
 
@@ -837,7 +884,13 @@ class TestSkeet : public UnitTest
          // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
          s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
       }
 
       void test_animate_level2Mixed()
@@ -848,36 +901,36 @@ class TestSkeet : public UnitTest
          dimensions.y = 600.0;
          Skeet s(dimensions);
 
-         s.birds.clear();
-         s.bullets.clear();
-         s.effects.clear();
-         s.points.clear();
+         assert(s.birds.empty() == true);
+         assert(s.bullets.empty() == true);
+         assert(s.effects.empty() == true);
+         assert(s.points.empty() == true);
 
          Bird::dimensions = dimensions;
 
          // create originals
-         Standard *st1 = new Standard(30.0);
-         Sinker *sk1 = new Sinker(25.0);
+         Standard *standard = new Standard(30.0);
+         Sinker *sinker = new Sinker(25.0);
 
          // set explicit positions/velocities and internals
-         st1->pt.x = 50.0;
-         st1->pt.y = 30.0;
-         st1->v.dx = 5.0;
-         st1->v.dy = 2.0;
-         st1->dead = false;
-         st1->radius = 301.0;
-         st1->points = 31;
+         standard->pt.x = 50.0;
+         standard->pt.y = 30.0;
+         standard->v.dx = 5.0;
+         standard->v.dy = 2.0;
+         standard->dead = false;
+         standard->radius = 301.0;
+         standard->points = 31;
 
-         sk1->pt.x = 60.0;
-         sk1->pt.y = 80.0;
-         sk1->v.dx = 2.0;
-         sk1->v.dy = -1.0;
-         sk1->dead = false;
-         sk1->radius = 303.0;
-         sk1->points = 33;
+         sinker->pt.x = 60.0;
+         sinker->pt.y = 80.0;
+         sinker->v.dx = 2.0;
+         sinker->v.dy = -1.0;
+         sinker->dead = false;
+         sinker->radius = 303.0;
+         sinker->points = 33;
 
-         s.birds.push_back(st1);
-         s.birds.push_back(sk1);
+         s.birds.push_back(standard);
+         s.birds.push_back(sinker);
 
          // other state
          s.gun.angle = 0.1;
@@ -895,12 +948,12 @@ class TestSkeet : public UnitTest
 
          // expected positions after advance:
          // Standards: v *= 0.995, then pt += v
-         double st1_dx = 5.0 * 0.995, st1_dy = 2.0 * 0.995;
-         double st1_x = 50.0 + st1_dx, st1_y = 30.0 + st1_dy;
+         double standardDx = 5.0 * 0.995;
+         double standardDy = 2.0 * 0.995;
 
          // Sinkers: v.addDy(-0.07) then pt += v
-         double sk1_dx = 2.0, sk1_dy = -1.0 - 0.07;
-         double sk1_x = 60.0 + sk1_dx, sk1_y = 80.0 + sk1_dy;
+         double sinkerDx = 2.0;
+         double sinkerDy = -1.0 - 0.07;
 
          // EXERCISE
          s.animate();
@@ -915,8 +968,10 @@ class TestSkeet : public UnitTest
             // st1 advanced
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(st1_x, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(st1_y, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(standardDx, (*it)->v.dx, tolerance);
+            assertEqualsTolerance(standardDy, (*it)->v.dy, tolerance);
+            assertEqualsTolerance(50.0 + standardDx, (*it)->pt.x, tolerance);
+            assertEqualsTolerance(30.0 + standardDy, (*it)->pt.y, tolerance);
             assertEqualsTolerance(301.0, (*it)->radius, tolerance);
             assertEquals(31, (*it)->points);
 
@@ -924,8 +979,10 @@ class TestSkeet : public UnitTest
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(sk1_x, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(sk1_y, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(sinkerDx, (*it)->v.dx, tolerance);
+            assertEqualsTolerance(sinkerDy, (*it)->v.dy, tolerance);
+            assertEqualsTolerance(60.0 + sinkerDx, (*it)->pt.x, tolerance);
+            assertEqualsTolerance(80.0 + sinkerDy, (*it)->pt.y, tolerance);
             assertEqualsTolerance(303.0, (*it)->radius, tolerance);
             assertEquals(33, (*it)->points);
 
@@ -949,10 +1006,17 @@ class TestSkeet : public UnitTest
          // time decremented
          assertEquals(FRAMES_PER_SECOND * 15 - 1, s.time.framesLeft);
 
-         // cleanup
+         // TEARDOWN
+         // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
          s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
       }
 
       void test_animate_level3Mixed()
@@ -963,45 +1027,46 @@ class TestSkeet : public UnitTest
          dimensions.y = 480.0;
          Skeet s(dimensions);
 
-         s.birds.clear();
-         s.bullets.clear();
-         s.effects.clear();
-         s.points.clear();
+         assert(s.birds.empty() == true);
+         assert(s.bullets.empty() == true);
+         assert(s.effects.empty() == true);
+         assert(s.points.empty() == true);
 
          Bird::dimensions = dimensions;
 
          // create originals
-         Standard *st1 = new Standard(20.0);
-         Sinker *sk1 = new Sinker(20.0);
-         Floater *fl1 = new Floater(20.0);
+         Standard *standard = new Standard(20.0);
+         Sinker *sinker = new Sinker(20.0);
+         Floater *floater = new Floater(20.0);
 
          // explicit positions/velocities and internals for the first three
-         st1->pt.x = 50.0;
-         st1->pt.y = 30.0;
-         st1->v.dx = 5.0;
-         st1->v.dy = 2.0;
-         st1->radius = 101;
-         st1->points = 40;
-         st1->dead = false;
+         standard->pt.x = 50.0;
+         standard->pt.y = 30.0;
+         standard->v.dx = 5.0;
+         standard->v.dy = 2.0;
+         standard->radius = 101;
+         standard->points = 40;
+         standard->dead = false;
 
-         sk1->pt.x = 60.0;
-         sk1->pt.y = 80.0;
-         sk1->v.dx = 2.0;
-         sk1->dead = false;
-         sk1->radius = 102;
-         sk1->points = 41;
+         sinker->pt.x = 60.0;
+         sinker->pt.y = 80.0;
+         sinker->v.dx = 2.0;
+         sinker->v.dy = -1.0;
+         sinker->dead = false;
+         sinker->radius = 102;
+         sinker->points = 41;
 
-         fl1->pt.x = 20.0;
-         fl1->pt.y = 40.0;
-         fl1->v.dx = 1.0;
-         fl1->v.dy = 3.0;
-         fl1->dead = false;
-         fl1->radius = 103;
-         fl1->points = 42;
+         floater->pt.x = 20.0;
+         floater->pt.y = 40.0;
+         floater->v.dx = 1.0;
+         floater->v.dy = 3.0;
+         floater->dead = false;
+         floater->radius = 103;
+         floater->points = 42;
 
-         s.birds.push_back(st1);
-         s.birds.push_back(sk1);
-         s.birds.push_back(fl1);
+         s.birds.push_back(standard);
+         s.birds.push_back(sinker);
+         s.birds.push_back(floater);
 
          s.gun.angle = 0.2;
          s.gun.pt.x = 2.0;
@@ -1017,31 +1082,14 @@ class TestSkeet : public UnitTest
 
          // compute expected post-advance positions and velocities for the three
          // initial birds Standard: v *= 0.995; pt += v;
-         double st1_dx_initial = st1->v.dx;
-         double st1_dy_initial = st1->v.dy;
-         double st1_dx_expected = st1_dx_initial * 0.995;
-         double st1_dy_expected = st1_dy_initial * 0.995;
-         double st1_x = st1->pt.x + st1_dx_expected;
-         double st1_y = st1->pt.y + st1_dy_expected;
-
+         double standardDx = 5.0 * 0.995;
+         double standardDy = 2.0 * 0.995;
          // Sinker: v.addDy(-0.07); pt += v;
-         double sk1_dx_initial = sk1->v.dx;
-         double sk1_dy_initial = sk1->v.dy;
-         double sk1_dx_expected = sk1_dx_initial;
-         double sk1_dy_expected = sk1_dy_initial - 0.07;
-         double sk1_x = sk1->pt.x + sk1_dx_expected;
-         double sk1_y = sk1->pt.y + sk1_dy_expected;
-
+         double sinkerDx = 2.0;
+         double sinkerDy = -1.0 - 0.07;
          // Floater: v *= 0.990; pt += v; then v.addDy(0.05)
-         double fl1_dx_initial = fl1->v.dx;
-         double fl1_dy_initial = fl1->v.dy;
-         double fl1_dx_expected = fl1_dx_initial * 0.99;
-         double fl1_dy_expected = fl1_dy_initial * 0.99; // used for position
-         double fl1_x = fl1->pt.x + fl1_dx_expected;
-         double fl1_y = fl1->pt.y + fl1_dy_expected;
-         // final stored velocity after advance (includes the +0.05 on dy)
-         double fl1_dx_final = fl1_dx_expected;
-         double fl1_dy_final = fl1_dy_expected + 0.05;
+         double floaterDx = 1.0 * 0.99;
+         double floaterDy = 3.0 * 0.99; // used for position
 
          // EXERCISE
          s.animate();
@@ -1058,11 +1106,11 @@ class TestSkeet : public UnitTest
             // st1 advanced
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(st1_x, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(st1_y, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(50.0 + standardDx, (*it)->pt.x, tolerance);
+            assertEqualsTolerance(30.0 + standardDy, (*it)->pt.y, tolerance);
             // verify velocity stored on the object after advance
-            assertEqualsTolerance(st1_dx_expected, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(st1_dy_expected, (*it)->v.dy, tolerance);
+            assertEqualsTolerance(standardDx, (*it)->v.dx, tolerance);
+            assertEqualsTolerance(standardDy, (*it)->v.dy, tolerance);
             assertEqualsTolerance(101, (*it)->radius, tolerance);
             assertEquals(40, (*it)->points);
 
@@ -1070,13 +1118,11 @@ class TestSkeet : public UnitTest
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(sk1_x, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(sk1_y, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(60.0 + sinkerDx, (*it)->pt.x, tolerance);
+            assertEqualsTolerance(80.0 + sinkerDy, (*it)->pt.y, tolerance);
             // verify sinker velocity stored on the object after advance
-            assertEqualsTolerance(sk1_dx_expected, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(sk1_dy_expected, (*it)->v.dy, tolerance);
-            // NOTE: two radius checks were present previously; keep both to
-            // avoid changing behavior
+            assertEqualsTolerance(sinkerDx, (*it)->v.dx, tolerance);
+            assertEqualsTolerance(sinkerDy, (*it)->v.dy, tolerance);
             assertEqualsTolerance(102, (*it)->radius, tolerance);
             assertEquals(41, (*it)->points);
 
@@ -1085,11 +1131,11 @@ class TestSkeet : public UnitTest
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
             // verify floater position after advance
-            assertEqualsTolerance(fl1_x, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(fl1_y, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(20.0 + floaterDx, (*it)->pt.x, tolerance);
+            assertEqualsTolerance(40.0 + floaterDy, (*it)->pt.y, tolerance);
             // verify floater final stored velocity (dy includes +0.05)
-            assertEqualsTolerance(fl1_dx_final, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(fl1_dy_final, (*it)->v.dy, tolerance);
+            assertEqualsTolerance(floaterDx, (*it)->v.dx, tolerance);
+            assertEqualsTolerance(floaterDy + 0.05, (*it)->v.dy, tolerance);
             assertEqualsTolerance(103, (*it)->radius, tolerance);
             assertEquals(42, (*it)->points);
 
@@ -1117,9 +1163,17 @@ class TestSkeet : public UnitTest
 
          assertEquals(FRAMES_PER_SECOND * 15 - 1, s.time.framesLeft);
 
+         // TEARDOWN
+         // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
          s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
       }
 
       void test_animate_level4Mixed()
@@ -1131,56 +1185,56 @@ class TestSkeet : public UnitTest
          dimensions.y = 720.0;
          Skeet s(dimensions);
 
-         s.birds.clear();
-         s.bullets.clear();
-         s.effects.clear();
-         s.points.clear();
+         assert(s.birds.empty() == true);
+         assert(s.bullets.empty() == true);
+         assert(s.effects.empty() == true);
+         assert(s.points.empty() == true);
 
          Bird::dimensions = dimensions;
 
          // create originals
-         Standard *st1 = new Standard(15.0);
-         Sinker *sk1 = new Sinker(15.0);
-         Floater *fl1 = new Floater(15.0);
-         Crazy *cr1 = new Crazy(15.0);
+         Standard *standard = new Standard(15.0);
+         Sinker *sinker = new Sinker(15.0);
+         Floater *floater = new Floater(15.0);
+         Crazy *crazy = new Crazy(15.0);
 
          // explicit positions/velocities and internals for the initial four
-         st1->pt.x = 50.0;
-         st1->pt.y = 30.0;
-         st1->v.dx = 5.0;
-         st1->v.dy = 2.0;
-         st1->dead = false;
-         st1->radius = 15.1;
-         st1->points = 60;
+         standard->pt.x = 50.0;
+         standard->pt.y = 30.0;
+         standard->v.dx = 5.0;
+         standard->v.dy = 2.0;
+         standard->dead = false;
+         standard->radius = 15.1;
+         standard->points = 60;
 
-         sk1->pt.x = 60.0;
-         sk1->pt.y = 80.0;
-         sk1->v.dx = 2.0;
-         sk1->v.dy = -1.0;
-         sk1->dead = false;
-         sk1->radius = 15.2;
-         sk1->points = 61;
+         sinker->pt.x = 60.0;
+         sinker->pt.y = 80.0;
+         sinker->v.dx = 2.0;
+         sinker->v.dy = -1.0;
+         sinker->dead = false;
+         sinker->radius = 15.2;
+         sinker->points = 61;
 
-         fl1->pt.x = 20.0;
-         fl1->pt.y = 40.0;
-         fl1->v.dx = 1.0;
-         fl1->v.dy = 3.0;
-         fl1->dead = false;
-         fl1->radius = 15.3;
-         fl1->points = 62;
+         floater->pt.x = 20.0;
+         floater->pt.y = 40.0;
+         floater->v.dx = 1.0;
+         floater->v.dy = 3.0;
+         floater->dead = false;
+         floater->radius = 15.3;
+         floater->points = 62;
 
-         cr1->pt.x = 25.0;
-         cr1->pt.y = 50.0;
-         cr1->v.dx = 4.0;
-         cr1->v.dy = 1.0;
-         cr1->dead = false;
-         cr1->radius = 15.4;
-         cr1->points = 63;
+         crazy->pt.x = 25.0;
+         crazy->pt.y = 50.0;
+         crazy->v.dx = 4.0;
+         crazy->v.dy = 1.0;
+         crazy->dead = false;
+         crazy->radius = 15.4;
+         crazy->points = 63;
 
-         s.birds.push_back(st1);
-         s.birds.push_back(sk1);
-         s.birds.push_back(fl1);
-         s.birds.push_back(cr1);
+         s.birds.push_back(standard);
+         s.birds.push_back(sinker);
+         s.birds.push_back(floater);
+         s.birds.push_back(crazy);
 
          s.gun.angle = 0.3;
          s.gun.pt.x = 3.0;
@@ -1194,42 +1248,19 @@ class TestSkeet : public UnitTest
          s.time.levelNumber = 4;
          s.time.framesLeft = FRAMES_PER_SECOND * 15;
 
-         // compute expected post-advance positions and velocities for the four
+         // Compute initial expected velocities and positions for the four
          // initial birds Standard: v *= 0.995; pt += v;
-         double st1_dx_initial = 5.0;
-         double st1_dy_initial = 2.0;
-         double st1_dx_expected = st1_dx_initial * 0.995; // 4.975
-         double st1_dy_expected = st1_dy_initial * 0.995; // 1.99
-         double st1_x_expected = 50.0 + st1_dx_expected;  // 54.975
-         double st1_y_expected = 30.0 + st1_dy_expected;  // 31.99
-
+         double standardDx = 5.0 * 0.995; // 4.975
+         double standardDy = 2.0 * 0.995; // 1.99
          // Sinker: v.addDy(-0.07); pt += v;
-         double sk1_dx_initial = 2.0;
-         double sk1_dy_initial = -1.0;
-         double sk1_dx_expected = sk1_dx_initial;        // 2.0
-         double sk1_dy_expected = sk1_dy_initial - 0.07; // -1.07
-         double sk1_x_expected = 60.0 + sk1_dx_expected; // 62.0
-         double sk1_y_expected = 80.0 + sk1_dy_expected; // 78.93
-
+         double sinkerDx = 2.0;         // 2.0
+         double sinkerDy = -1.0 - 0.07; // -1.07
          // Floater: v *= 0.990; pt += v; then v.addDy(0.05)
-         double fl1_dx_initial = 1.0;
-         double fl1_dy_initial = 3.0;
-         double fl1_dx_expected = fl1_dx_initial * 0.99; // 0.99
-         double fl1_dy_expected = fl1_dy_initial * 0.99; // 2.97
-         double fl1_x_expected = 20.0 + fl1_dx_expected; // 20.99
-         double fl1_y_expected = 40.0 + fl1_dy_expected; // 42.97
-         double fl1_dx_final = fl1_dx_expected;          // 0.99
-         double fl1_dy_final = fl1_dy_expected + 0.05;   // 3.02
-
-         // Crazy:
-         // deterministic random -> randomInt(0,15) == 0 so it modifies velocity
-         // by randomDouble(min) = -1.5 new v = v + (-1.5, -1.5); pt += new v
-         double cr1_dx_initial = 4.0;
-         double cr1_dy_initial = 1.0;
-         double cr1_dx_expected = cr1_dx_initial + (-1.5); // 2.5
-         double cr1_dy_expected = cr1_dy_initial + (-1.5); // -0.5
-         double cr1_x_expected = 25.0 + cr1_dx_expected;   // 27.5
-         double cr1_y_expected = 50.0 + cr1_dy_expected;   // 49.5
+         double floaterDx = 1.0 * 0.99; // 0.99
+         double floaterDy = 3.0 * 0.99; // 2.97
+         // new v = v + (-1.5, -1.5); pt += new v
+         double crazyDx = 4.0 + (-1.5); // 2.5
+         double crazyDy = 1.0 + (-1.5); // -0.5
 
          // EXERCISE
          s.animate();
@@ -1246,10 +1277,10 @@ class TestSkeet : public UnitTest
             // st1 advanced
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(st1_x_expected, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(st1_y_expected, (*it)->pt.y, tolerance);
-            assertEqualsTolerance(st1_dx_expected, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(st1_dy_expected, (*it)->v.dy, tolerance);
+            assertEqualsTolerance(50.0 + standardDx, (*it)->pt.x, tolerance);
+            assertEqualsTolerance(30.0 + standardDy, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(standardDx, (*it)->v.dx, tolerance);
+            assertEqualsTolerance(standardDy, (*it)->v.dy, tolerance);
             assertEqualsTolerance(15.1, (*it)->radius, tolerance);
             assertEquals(60, (*it)->points);
 
@@ -1257,10 +1288,10 @@ class TestSkeet : public UnitTest
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(sk1_x_expected, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(sk1_y_expected, (*it)->pt.y, tolerance);
-            assertEqualsTolerance(sk1_dx_expected, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(sk1_dy_expected, (*it)->v.dy, tolerance);
+            assertEqualsTolerance(60.0 + sinkerDx, (*it)->pt.x, tolerance);
+            assertEqualsTolerance(80.0 + sinkerDy, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(sinkerDx, (*it)->v.dx, tolerance);
+            assertEqualsTolerance(sinkerDy, (*it)->v.dy, tolerance);
             assertEqualsTolerance(15.2, (*it)->radius, tolerance);
             assertEquals(61, (*it)->points);
 
@@ -1268,10 +1299,12 @@ class TestSkeet : public UnitTest
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
-            assertEqualsTolerance(fl1_x_expected, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(fl1_y_expected, (*it)->pt.y, tolerance);
-            assertEqualsTolerance(fl1_dx_final, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(fl1_dy_final, (*it)->v.dy, tolerance);
+            // verify floater position after advance
+            assertEqualsTolerance(20.0 + floaterDx, (*it)->pt.x, tolerance);
+            assertEqualsTolerance(40.0 + floaterDy, (*it)->pt.y, tolerance);
+            // verify floater final stored velocity (dy includes +0.05)
+            assertEqualsTolerance(floaterDx, (*it)->v.dx, tolerance);
+            assertEqualsTolerance(floaterDy + 0.05, (*it)->v.dy, tolerance);
             assertEqualsTolerance(15.3, (*it)->radius, tolerance);
             assertEquals(62, (*it)->points);
 
@@ -1279,10 +1312,10 @@ class TestSkeet : public UnitTest
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Crazy));
-            assertEqualsTolerance(cr1_x_expected, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(cr1_y_expected, (*it)->pt.y, tolerance);
-            assertEqualsTolerance(cr1_dx_expected, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(cr1_dy_expected, (*it)->v.dy, tolerance);
+            assertEqualsTolerance(25.0 + crazyDx, (*it)->pt.x, tolerance);
+            assertEqualsTolerance(50.0 + crazyDy, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(crazyDx, (*it)->v.dx, tolerance);
+            assertEqualsTolerance(crazyDy, (*it)->v.dy, tolerance);
             assertEqualsTolerance(15.4, (*it)->radius, tolerance);
             assertEquals(63, (*it)->points);
 
@@ -1318,8 +1351,1433 @@ class TestSkeet : public UnitTest
          assertEquals(FRAMES_PER_SECOND * 15 - 1, s.time.framesLeft);
 
          // TEARDOWN
+         // clean up any remaining heap allocations to avoid leaks in test run
          for (auto p : s.birds)
             delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
          s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
+      }
+
+      void test_animate_level4Bullets()
+      {
+         // SETUP
+         Position dimensionsOriginal = Bullet::dimensions;
+         Position dimensions;
+         dimensions.x = 1280.0;
+         dimensions.y = 720.0;
+         Skeet s(dimensions);
+
+         // Ensure lists are empty explicitly
+         assert(s.birds.empty() == true);
+         assert(s.bullets.empty() == true);
+         assert(s.effects.empty() == true);
+         assert(s.points.empty() == true);
+
+         // Ensure Bullet static dimensions for deterministic construction
+         Bullet::dimensions = dimensions;
+
+         // Create one of each bullet kind using deterministic angles
+         Pellet *pellet = new Pellet(0.0);
+         Bomb *bomb = new Bomb(0.5);
+         Missile *missile = new Missile(0.2);
+
+         // Add to skeet
+         s.bullets.push_back(pellet);
+         s.bullets.push_back(bomb);
+         s.bullets.push_back(missile);
+
+         // Explicitly set other state that should remain unchanged except
+         // gun.angle
+         s.gun.angle = 0.30; // initial
+         s.gun.pt.x = 150.0;
+         s.gun.pt.y = 75.0;
+         s.score.points = 0;
+         s.hitRatio.numKilled = 0;
+         s.hitRatio.numMissed = 0;
+         s.dimensions = dimensions;
+         s.bullseye = false;
+
+         s.time.levelNumber = 4;
+         s.time.framesLeft = FRAMES_PER_SECOND * 15;
+
+         // Compute initial expected velocities/positions (constructor behavior)
+         double pelletDx0 = -15.0 * cos(0.0);
+         double pelletDy0 = 15.0 * sin(0.0);
+         double pelletStartX = dimensions.x - 1.0;
+         double pelletStartY = 1.0;
+
+         double bombDx0 = -10.0 * cos(0.5);
+         double bombDy0 = 10.0 * sin(0.5);
+         double bombStartX = dimensions.x - 1.0;
+         double bombStartY = 1.0;
+
+         double missileDx0 = -10.0 * cos(0.2);
+         double missileDy0 = 10.0 * sin(0.2);
+         double missileStartX = dimensions.x - 1.0;
+         double missileStartY = 1.0;
+
+         // Compute expected missile velocity after a single 'up' input
+         // (v.turn(0.04))
+         double missileSpeed =
+            sqrt(missileDx0 * missileDx0 + missileDy0 * missileDy0);
+         double missileAngle0 =
+            atan2(missileDx0, missileDy0); // velocity.Angle uses (dx,dy)
+         double missileAngle1 = missileAngle0 + 0.04;
+         double missileDx1 = sin(missileAngle1) * missileSpeed;
+         double missileDy1 = cos(missileAngle1) * missileSpeed;
+
+         // Preserve UserInput static state
+         bool ui_initilized = UserInput::initialized;
+         double ui_timePeriod = UserInput::timePeriod;
+         int ui_nextTick = UserInput::nextTick;
+         int ui_isDownPress = UserInput::isDownPress;
+         int ui_isUpPress = UserInput::isUpPress;
+         int ui_isLeftPress = UserInput::isLeftPress;
+         int ui_isRightPress = UserInput::isRightPress;
+         bool ui_isSpacePress = UserInput::isSpacePress;
+         bool ui_isBPress = UserInput::isBPress;
+         bool ui_isMPress = UserInput::isMPress;
+         bool ui_isShiftPress = UserInput::isShiftPress;
+         void *ui_p = UserInput::p;
+         void (*ui_callBack)(const UserInput *, void *) = UserInput::callBack;
+
+         // Prevent UserInput::initialize() and set 'up' pressed
+         UserInput::initialized = true;
+         UserInput::timePeriod = 0.0;
+         UserInput::nextTick = 0;
+         UserInput::isDownPress = 0;
+         UserInput::isUpPress = 1; // press UP
+         UserInput::isLeftPress = 0;
+         UserInput::isRightPress = 0;
+         UserInput::isSpacePress = false;
+         UserInput::isBPress = false;
+         UserInput::isMPress = false;
+         UserInput::isShiftPress = false;
+         UserInput::p = nullptr;
+         UserInput::callBack = nullptr;
+
+         UserInput ui;
+
+         double oldGunAngle = s.gun.angle;
+
+         // EXERCISE
+         s.interact(ui);
+
+         // VERIFY
+         // No new bullets should be created by interact (only input sent to
+         // existing bullets)
+         assertUnit(3 == (int)s.bullets.size());
+
+         // Pellets and Bombs should be unchanged (input is no-op for them)
+         {
+            auto it = s.bullets.begin();
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Pellet));
+            assertEqualsTolerance(
+               pelletDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               pelletDy0, (*it)->getVelocity().getDy(), tolerance);
+            assertEqualsTolerance(
+               pelletStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               pelletStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Bomb));
+            assertEqualsTolerance(
+               bombDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               bombDy0, (*it)->getVelocity().getDy(), tolerance);
+            assertEqualsTolerance(
+               bombStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               bombStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         // Missile should have been altered by input (turn)
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Missile));
+            assertEqualsTolerance(
+               missileDx1, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               missileDy1, (*it)->getVelocity().getDy(), tolerance);
+            // position unchanged (interact does not move bullets)
+            assertEqualsTolerance(
+               missileStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               missileStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         // Gun angle should have elevated by 0.025 for a single 'up' press
+         assertEqualsTolerance(oldGunAngle + 0.025, s.gun.angle, tolerance);
+
+         // No effects should have been created by interact alone
+         assertUnit(0 == (int)s.effects.size());
+
+         // Time and other state remain unchanged
+         assertEquals(FRAMES_PER_SECOND * 15, s.time.framesLeft);
+         assertEquals(0, s.score.points);
+         assertEquals(0, s.hitRatio.numKilled);
+         assertEquals(0, s.hitRatio.numMissed);
+
+         // TEARDOWN
+         // restore UserInput static state
+         UserInput::initialized = ui_initilized;
+         UserInput::timePeriod = ui_timePeriod;
+         UserInput::nextTick = ui_nextTick;
+         UserInput::isDownPress = ui_isDownPress;
+         UserInput::isUpPress = ui_isUpPress;
+         UserInput::isLeftPress = ui_isLeftPress;
+         UserInput::isRightPress = ui_isRightPress;
+         UserInput::isSpacePress = ui_isSpacePress;
+         UserInput::isBPress = ui_isBPress;
+         UserInput::isMPress = ui_isMPress;
+         UserInput::isShiftPress = ui_isShiftPress;
+         UserInput::p = ui_p;
+         UserInput::callBack = ui_callBack;
+
+         Bullet::dimensions = dimensionsOriginal;
+
+         for (auto p : s.birds)
+            delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
+         s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
+      }
+
+      // New test: interact with no key pressed, ensure nothing new is created
+      void test_interact_nothing()
+      {
+         // SETUP
+         Position dimensions;
+         dimensions.x = 800.0;
+         dimensions.y = 600.0;
+         Skeet s(dimensions);
+
+         // Ensure lists are empty explicitly
+         assert(s.birds.empty() == true);
+         assert(s.bullets.empty() == true);
+         assert(s.effects.empty() == true);
+         assert(s.points.empty() == true);
+
+         // Ensure Bird static dimensions for deterministic construction
+         Bird::dimensions = dimensions;
+
+         // Explicitly set the gun (there will be a gun but no bullets created)
+         s.gun.angle = 0.42;
+         s.gun.pt.x = 150.0;
+         s.gun.pt.y = 75.0;
+
+         // Set other visible state that should remain unchanged after interact
+         s.score.points = 10;
+         s.hitRatio.numKilled = 1;
+         s.hitRatio.numMissed = 0;
+         s.dimensions = dimensions;
+         s.bullseye = false;
+
+         // Set time so level-based firing rules are controlled
+         s.time.levelNumber = 1;
+         s.time.framesLeft = FRAMES_PER_SECOND * 15;
+
+         // retain the old settings for UserInput
+         bool ui_initilized = UserInput::initialized;
+         double ui_timePeriod = UserInput::timePeriod;
+         int ui_nextTick = UserInput::nextTick;
+         int ui_isDownPress = UserInput::isDownPress;
+         int ui_isUpPress = UserInput::isUpPress;
+         int ui_isLeftPress = UserInput::isLeftPress;
+         int ui_isRightPress = UserInput::isRightPress;
+         bool ui_isSpacePress = UserInput::isSpacePress;
+         bool ui_isBPress = UserInput::isBPress;
+         bool ui_isMPress = UserInput::isMPress;
+         bool ui_isShiftPress = UserInput::isShiftPress;
+         void *ui_p = UserInput::p;
+         void (*ui_callBack)(const UserInput *, void *) = UserInput::callBack;
+
+         // Prevent UserInput::initialize() from running in tests
+         UserInput::initialized = true;
+
+         // Explicitly set all UserInput static flags to known values (no keys
+         // pressed)
+         UserInput::timePeriod = 0.0;
+         UserInput::nextTick = 0;
+         UserInput::isDownPress = 0;
+         UserInput::isUpPress = 0;
+         UserInput::isLeftPress = 0;
+         UserInput::isRightPress = 0;
+         UserInput::isSpacePress = false;
+         UserInput::isBPress = false;
+         UserInput::isMPress = false;
+         UserInput::isShiftPress = false;
+         UserInput::p = nullptr;
+         UserInput::callBack = nullptr;
+
+         UserInput ui; // default constructed; we manipulated static state above
+
+         // Preserve values for verification
+         double oldAngle = s.gun.angle;
+         double oldGunX = s.gun.pt.x;
+         double oldGunY = s.gun.pt.y;
+         int oldScore = s.score.points;
+         int oldKilled = s.hitRatio.numKilled;
+         int oldMissed = s.hitRatio.numMissed;
+         bool oldBullseye = s.bullseye;
+
+         // EXERCISE
+         s.interact(ui);
+
+         // VERIFY
+         // No bullets should have been added, no effects, points, or birds
+         // created by interact alone
+         assertUnit(0 == (int)s.bullets.size());
+         assertUnit(0 == (int)s.effects.size());
+         assertUnit(0 == (int)s.points.size());
+         assertUnit(0 == (int)s.birds.size());
+
+         // Gun state should remain unchanged (no up/down/left/right input)
+         assertEqualsTolerance(oldAngle, s.gun.angle, tolerance);
+         assertEqualsTolerance(oldGunX, s.gun.pt.x, tolerance);
+         assertEqualsTolerance(oldGunY, s.gun.pt.y, tolerance);
+
+         // Score and hit ratio should remain unchanged
+         assertEquals(oldScore, s.score.points);
+         assertEquals(oldKilled, s.hitRatio.numKilled);
+         assertEquals(oldMissed, s.hitRatio.numMissed);
+
+         // Bullseye should remain false
+         assertEquals(oldBullseye, s.bullseye);
+
+         // TEARDOWN
+         // restore UserInput initialization flag so other tests behave normally
+         UserInput::initialized = ui_initilized;
+         UserInput::timePeriod = ui_timePeriod;
+         UserInput::nextTick = ui_nextTick;
+         UserInput::isDownPress = ui_isDownPress;
+         UserInput::isUpPress = ui_isUpPress;
+         UserInput::isLeftPress = ui_isLeftPress;
+         UserInput::isRightPress = ui_isRightPress;
+         UserInput::isSpacePress = ui_isSpacePress;
+         UserInput::isBPress = ui_isBPress;
+         UserInput::isMPress = ui_isMPress;
+         UserInput::isShiftPress = ui_isShiftPress;
+         UserInput::p = ui_p;
+         UserInput::callBack = ui_callBack;
+
+         // clean up any remaining heap allocations to avoid leaks in test run
+         for (auto p : s.birds)
+            delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
+         s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
+      }
+
+      void test_interact_upEmpty()
+      {
+         // SETUP
+         Position dimensions;
+         dimensions.x = 800.0;
+         dimensions.y = 600.0;
+         Skeet s(dimensions);
+
+         // Ensure lists are empty explicitly
+         assert(s.birds.empty() == true);
+         assert(s.bullets.empty() == true);
+         assert(s.effects.empty() == true);
+         assert(s.points.empty() == true);
+
+         // Ensure Bird static dimensions for deterministic construction
+         Bird::dimensions = dimensions;
+
+         // Explicitly set the gun so we can observe the elevation
+         s.gun.angle = 0.30; // initial angle
+         s.gun.pt.x = 150.0;
+         s.gun.pt.y = 75.0;
+
+         // Other state that should remain unchanged
+         s.score.points = 10;
+         s.hitRatio.numKilled = 1;
+         s.hitRatio.numMissed = 0;
+         s.dimensions = dimensions;
+         s.bullseye = false;
+
+         // Set time so level-based behavior is stable
+         s.time.levelNumber = 1;
+         s.time.framesLeft = FRAMES_PER_SECOND * 15;
+
+         // retain the old settings for UserInput
+         bool ui_initilized = UserInput::initialized;
+         double ui_timePeriod = UserInput::timePeriod;
+         int ui_nextTick = UserInput::nextTick;
+         int ui_isDownPress = UserInput::isDownPress;
+         int ui_isUpPress = UserInput::isUpPress;
+         int ui_isLeftPress = UserInput::isLeftPress;
+         int ui_isRightPress = UserInput::isRightPress;
+         bool ui_isSpacePress = UserInput::isSpacePress;
+         bool ui_isBPress = UserInput::isBPress;
+         bool ui_isMPress = UserInput::isMPress;
+         bool ui_isShiftPress = UserInput::isShiftPress;
+         void *ui_p = UserInput::p;
+         void (*ui_callBack)(const UserInput *, void *) = UserInput::callBack;
+
+         // Prevent UserInput::initialize() from running in tests and set keys
+         UserInput::initialized = true;
+         UserInput::timePeriod = 0.0;
+         UserInput::nextTick = 0;
+         UserInput::isDownPress = 0;
+         UserInput::isUpPress = 1; // press UP
+         UserInput::isLeftPress = 0;
+         UserInput::isRightPress = 0;
+         UserInput::isSpacePress = false;
+         UserInput::isBPress = false;
+         UserInput::isMPress = false;
+         UserInput::isShiftPress = false;
+         UserInput::p = nullptr;
+         UserInput::callBack = nullptr;
+
+         UserInput ui;
+
+         // Preserve old values
+         double oldAngle = s.gun.angle;
+         int oldBirdCount = (int)s.birds.size();
+         int oldScore = s.score.points;
+         int oldKilled = s.hitRatio.numKilled;
+         int oldMissed = s.hitRatio.numMissed;
+
+         // EXERCISE
+         s.interact(ui);
+
+         // VERIFY
+         // Gun angle should have elevated by 0.025 for a single 'up' press
+         assertEqualsTolerance(oldAngle + 0.025, s.gun.angle, tolerance);
+
+         // No bullets/effects/points should be created by pressing up alone
+         assertUnit(0 == (int)s.bullets.size());
+         assertUnit(0 == (int)s.effects.size());
+         assertUnit(0 == (int)s.points.size());
+         assertUnit(0 == (int)s.birds.size());
+
+         // Score and hit ratio remain unchanged
+         assertEquals(oldScore, s.score.points);
+         assertEquals(oldKilled, s.hitRatio.numKilled);
+         assertEquals(oldMissed, s.hitRatio.numMissed);
+
+         // TEARDOWN
+
+         // restore UserInput initialization flag so other tests behave normally
+         UserInput::initialized = ui_initilized;
+         UserInput::timePeriod = ui_timePeriod;
+         UserInput::nextTick = ui_nextTick;
+         UserInput::isDownPress = ui_isDownPress;
+         UserInput::isUpPress = ui_isUpPress;
+         UserInput::isLeftPress = ui_isLeftPress;
+         UserInput::isRightPress = ui_isRightPress;
+         UserInput::isSpacePress = ui_isSpacePress;
+         UserInput::isBPress = ui_isBPress;
+         UserInput::isMPress = ui_isMPress;
+         UserInput::isShiftPress = ui_isShiftPress;
+         UserInput::p = ui_p;
+         UserInput::callBack = ui_callBack;
+
+         // clean up any remaining heap allocations to avoid leaks in test run
+         for (auto p : s.birds)
+            delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
+         s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
+      }
+
+      void test_interact_upBullets()
+      {
+         // SETUP
+         Position dimensionsOriginal = Bullet::dimensions;
+         Position dimensions;
+         dimensions.x = 1280.0;
+         dimensions.y = 720.0;
+         Skeet s(dimensions);
+
+         // Ensure lists are empty explicitly
+         assert(s.birds.empty() == true);
+         assert(s.bullets.empty() == true);
+         assert(s.effects.empty() == true);
+         assert(s.points.empty() == true);
+
+         // Ensure Bullet static dimensions for deterministic construction
+         Bullet::dimensions = dimensions;
+
+         // Create one of each bullet kind using deterministic angles
+         Pellet *pellet = new Pellet(0.0);
+         Bomb *bomb = new Bomb(0.5);
+         Missile *missile = new Missile(0.2);
+
+         // Add to skeet
+         s.bullets.push_back(pellet);
+         s.bullets.push_back(bomb);
+         s.bullets.push_back(missile);
+
+         // Explicitly set other state that should remain unchanged except
+         // gun.angle
+         s.gun.angle = 0.30; // initial
+         s.gun.pt.x = 150.0;
+         s.gun.pt.y = 75.0;
+         s.score.points = 0;
+         s.hitRatio.numKilled = 0;
+         s.hitRatio.numMissed = 0;
+         s.dimensions = dimensions;
+         s.bullseye = false;
+
+         s.time.levelNumber = 4;
+         s.time.framesLeft = FRAMES_PER_SECOND * 15;
+
+         // Compute initial expected velocities/positions (constructor behavior)
+         double pelletDx0 = -15.0 * cos(0.0);
+         double pelletDy0 = 15.0 * sin(0.0);
+         double pelletStartX = dimensions.x - 1.0;
+         double pelletStartY = 1.0;
+
+         double bombDx0 = -10.0 * cos(0.5);
+         double bombDy0 = 10.0 * sin(0.5);
+         double bombStartX = dimensions.x - 1.0;
+         double bombStartY = 1.0;
+
+         double missileDx0 = -10.0 * cos(0.2);
+         double missileDy0 = 10.0 * sin(0.2);
+         double missileStartX = dimensions.x - 1.0;
+         double missileStartY = 1.0;
+
+         // Compute expected missile velocity after a single 'up' input
+         // (v.turn(0.04))
+         double missileSpeed =
+            sqrt(missileDx0 * missileDx0 + missileDy0 * missileDy0);
+         double missileAngle0 =
+            atan2(missileDx0, missileDy0); // velocity.Angle uses (dx,dy)
+         double missileAngle1 = missileAngle0 + 0.04;
+         double missileDx1 = sin(missileAngle1) * missileSpeed;
+         double missileDy1 = cos(missileAngle1) * missileSpeed;
+
+         // Preserve UserInput static state
+         bool ui_initilized = UserInput::initialized;
+         double ui_timePeriod = UserInput::timePeriod;
+         int ui_nextTick = UserInput::nextTick;
+         int ui_isDownPress = UserInput::isDownPress;
+         int ui_isUpPress = UserInput::isUpPress;
+         int ui_isLeftPress = UserInput::isLeftPress;
+         int ui_isRightPress = UserInput::isRightPress;
+         bool ui_isSpacePress = UserInput::isSpacePress;
+         bool ui_isBPress = UserInput::isBPress;
+         bool ui_isMPress = UserInput::isMPress;
+         bool ui_isShiftPress = UserInput::isShiftPress;
+         void *ui_p = UserInput::p;
+         void (*ui_callBack)(const UserInput *, void *) = UserInput::callBack;
+
+         // Prevent UserInput::initialize() and set 'up' pressed
+         UserInput::initialized = true;
+         UserInput::timePeriod = 0.0;
+         UserInput::nextTick = 0;
+         UserInput::isDownPress = 0;
+         UserInput::isUpPress = 1; // press UP
+         UserInput::isLeftPress = 0;
+         UserInput::isRightPress = 0;
+         UserInput::isSpacePress = false;
+         UserInput::isBPress = false;
+         UserInput::isMPress = false;
+         UserInput::isShiftPress = false;
+         UserInput::p = nullptr;
+         UserInput::callBack = nullptr;
+
+         UserInput ui;
+
+         double oldGunAngle = s.gun.angle;
+
+         // EXERCISE
+         s.interact(ui);
+
+         // VERIFY
+         // No new bullets should be created by interact (only input sent to
+         // existing bullets)
+         assertUnit(3 == (int)s.bullets.size());
+
+         // Pellets and Bombs should be unchanged (input is no-op for them)
+         {
+            auto it = s.bullets.begin();
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Pellet));
+            assertEqualsTolerance(
+               pelletDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               pelletDy0, (*it)->getVelocity().getDy(), tolerance);
+            assertEqualsTolerance(
+               pelletStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               pelletStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Bomb));
+            assertEqualsTolerance(
+               bombDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               bombDy0, (*it)->getVelocity().getDy(), tolerance);
+            assertEqualsTolerance(
+               bombStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               bombStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         // Missile should have been altered by input (turn)
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Missile));
+            assertEqualsTolerance(
+               missileDx1, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               missileDy1, (*it)->getVelocity().getDy(), tolerance);
+            // position unchanged (interact does not move bullets)
+            assertEqualsTolerance(
+               missileStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               missileStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         // Gun angle should have elevated by 0.025 for a single 'up' press
+         assertEqualsTolerance(oldGunAngle + 0.025, s.gun.angle, tolerance);
+
+         // No effects should have been created by interact alone
+         assertUnit(0 == (int)s.effects.size());
+
+         // Time and other state remain unchanged
+         assertEquals(FRAMES_PER_SECOND * 15, s.time.framesLeft);
+         assertEquals(0, s.score.points);
+         assertEquals(0, s.hitRatio.numKilled);
+         assertEquals(0, s.hitRatio.numMissed);
+
+         // TEARDOWN
+         // restore UserInput static state
+         UserInput::initialized = ui_initilized;
+         UserInput::timePeriod = ui_timePeriod;
+         UserInput::nextTick = ui_nextTick;
+         UserInput::isDownPress = ui_isDownPress;
+         UserInput::isUpPress = ui_isUpPress;
+         UserInput::isLeftPress = ui_isLeftPress;
+         UserInput::isRightPress = ui_isRightPress;
+         UserInput::isSpacePress = ui_isSpacePress;
+         UserInput::isBPress = ui_isBPress;
+         UserInput::isMPress = ui_isMPress;
+         UserInput::isShiftPress = ui_isShiftPress;
+         UserInput::p = ui_p;
+         UserInput::callBack = ui_callBack;
+
+         Bullet::dimensions = dimensionsOriginal;
+
+         // clean up any remaining heap allocations to avoid leaks in test run
+         for (auto p : s.birds)
+            delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
+         s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
+      }
+
+      void test_interact_spaceBullets()
+      {
+         // SETUP
+         Position dimensionsOriginal = Bullet::dimensions;
+         Position dimensions;
+         dimensions.x = 1280.0;
+         dimensions.y = 720.0;
+         Skeet s(dimensions);
+
+         // Ensure lists are empty explicitly
+         assert(s.birds.empty() == true);
+         assert(s.bullets.empty() == true);
+         assert(s.effects.empty() == true);
+         assert(s.points.empty() == true);
+
+         // Ensure Bullet static dimensions for deterministic construction
+         Bullet::dimensions = dimensions;
+
+         // Create one of each bullet kind using deterministic angles:
+         // Pellet(angle=0.0), Bomb(angle=0.5), Missile(angle=0.2)
+         Pellet *pellet = new Pellet(0.0);
+         Bomb *bomb = new Bomb(0.5);
+         Missile *missile = new Missile(0.2);
+
+         // Add to skeet
+         s.bullets.push_back(pellet);
+         s.bullets.push_back(bomb);
+         s.bullets.push_back(missile);
+
+         // Explicitly set other state that should remain unchanged
+         s.gun.angle = 0.30; // used for newly fired pellet
+         s.gun.pt.x = 3.0;
+         s.gun.pt.y = 4.0;
+         s.score.points = 0;
+         s.hitRatio.numKilled = 0;
+         s.hitRatio.numMissed = 0;
+         s.dimensions = dimensions;
+         s.bullseye = false;
+
+         s.time.levelNumber = 4;
+         s.time.framesLeft = FRAMES_PER_SECOND * 15;
+
+         // Compute initial expected velocities/positions (constructors)
+         double pelletDx0 = -15.0 * cos(0.0);
+         double pelletDy0 = 15.0 * sin(0.0);
+         double pelletStartX = dimensions.x - 1.0;
+         double pelletStartY = 1.0;
+
+         double bombDx0 = -10.0 * cos(0.5);
+         double bombDy0 = 10.0 * sin(0.5);
+         double bombStartX = dimensions.x - 1.0;
+         double bombStartY = 1.0;
+
+         double missileDx0 = -10.0 * cos(0.2);
+         double missileDy0 = 10.0 * sin(0.2);
+         double missileStartX = dimensions.x - 1.0;
+         double missileStartY = 1.0;
+
+         // Expected new pellet (fired by space): uses gun angle = 0.30
+         double newPelletDx = -15.0 * cos(0.30);
+         double newPelletDy = 15.0 * sin(0.30);
+         double newPelletStartX = dimensions.x - 1.0;
+         double newPelletStartY = 1.0;
+
+         // retain the old settings for UserInput
+         bool ui_initilized = UserInput::initialized;
+         double ui_timePeriod = UserInput::timePeriod;
+         int ui_nextTick = UserInput::nextTick;
+         int ui_isDownPress = UserInput::isDownPress;
+         int ui_isUpPress = UserInput::isUpPress;
+         int ui_isLeftPress = UserInput::isLeftPress;
+         int ui_isRightPress = UserInput::isRightPress;
+         bool ui_isSpacePress = UserInput::isSpacePress;
+         bool ui_isBPress = UserInput::isBPress;
+         bool ui_isMPress = UserInput::isMPress;
+         bool ui_isShiftPress = UserInput::isShiftPress;
+         void *ui_p = UserInput::p;
+         void (*ui_callBack)(const UserInput *, void *) = UserInput::callBack;
+
+         // Prevent UserInput::initialize() from running in tests and set SPACE
+         // pressed
+         UserInput::initialized = true;
+         UserInput::timePeriod = 0.0;
+         UserInput::nextTick = 0;
+         UserInput::isDownPress = 0;
+         UserInput::isUpPress = 0;
+         UserInput::isLeftPress = 0;
+         UserInput::isRightPress = 0;
+         UserInput::isSpacePress = true; // SPACE pressed
+         UserInput::isBPress = true;
+         UserInput::isMPress = true;
+         UserInput::isShiftPress = false;
+         UserInput::p = nullptr;
+         UserInput::callBack = nullptr;
+
+         UserInput ui;
+
+         // EXERCISE
+         s.interact(ui);
+
+         // VERIFY
+         // SPACE is processed first in interact -> new pellet appended: 3 + 1 =
+         // 4
+         assertUnit(4 == (int)s.bullets.size());
+
+         // Original pellet unchanged
+         {
+            auto it = s.bullets.begin();
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Pellet));
+            assertEqualsTolerance(
+               pelletDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               pelletDy0, (*it)->getVelocity().getDy(), tolerance);
+         }
+
+         // Original bomb unchanged
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Bomb));
+            assertEqualsTolerance(
+               bombDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               bombDy0, (*it)->getVelocity().getDy(), tolerance);
+         }
+
+         // Original missile unchanged
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Missile));
+            assertEqualsTolerance(
+               missileDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               missileDy0, (*it)->getVelocity().getDy(), tolerance);
+         }
+
+         // New pellet appended and has velocity based on gun angle
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            ++it;
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Pellet));
+            assertEqualsTolerance(
+               newPelletDx, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               newPelletDy, (*it)->getVelocity().getDy(), tolerance);
+            assertEqualsTolerance(
+               newPelletStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               newPelletStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         // No effects created by interact alone
+         assertUnit(0 == (int)s.effects.size());
+
+         // restore UserInput static state
+         UserInput::initialized = ui_initilized;
+         UserInput::timePeriod = ui_timePeriod;
+         UserInput::nextTick = ui_nextTick;
+         UserInput::isDownPress = ui_isDownPress;
+         UserInput::isUpPress = ui_isUpPress;
+         UserInput::isLeftPress = ui_isLeftPress;
+         UserInput::isRightPress = ui_isRightPress;
+         UserInput::isSpacePress = ui_isSpacePress;
+         UserInput::isBPress = ui_isBPress;
+         UserInput::isMPress = ui_isMPress;
+         UserInput::isShiftPress = ui_isShiftPress;
+         UserInput::p = ui_p;
+         UserInput::callBack = ui_callBack;
+
+         // TEARDOWN
+
+         Bullet::dimensions = dimensionsOriginal;
+
+         for (auto p : s.birds)
+            delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
+         s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
+      }
+
+      void test_interact_mBullets()
+      {
+         // SETUP
+         Position dimensionsOriginal = Bullet::dimensions;
+         Position dimensions;
+         dimensions.x = 1280.0;
+         dimensions.y = 720.0;
+         Skeet s(dimensions);
+
+         // Ensure lists are empty explicitly
+         assert(s.birds.empty() == true);
+         assert(s.bullets.empty() == true);
+         assert(s.effects.empty() == true);
+         assert(s.points.empty() == true);
+
+         // Ensure Bullet static dimensions for deterministic construction
+         Bullet::dimensions = dimensions;
+
+         // Create one of each bullet kind (existing on screen)
+         Pellet *pellet = new Pellet(0.0);
+         Bomb *bomb = new Bomb(0.5);
+         Missile *missile = new Missile(0.2);
+
+         // Add to skeet
+         s.bullets.push_back(pellet);
+         s.bullets.push_back(bomb);
+         s.bullets.push_back(missile);
+
+         // Explicitly set other state
+         s.gun.angle = 0.30;
+         s.gun.pt.x = 3.0;
+         s.gun.pt.y = 4.0;
+         s.score.points = 0;
+         s.hitRatio.numKilled = 0;
+         s.hitRatio.numMissed = 0;
+         s.dimensions = dimensions;
+         s.bullseye = false;
+
+         s.time.levelNumber = 4; // allow missiles to be fired
+         s.time.framesLeft = FRAMES_PER_SECOND * 15;
+
+         // initial velocities/positions from constructors
+         double pelletDx0 = -15.0 * cos(0.0);
+         double pelletDy0 = 15.0 * sin(0.0);
+         double pelletStartX = dimensions.x - 1.0;
+         double pelletStartY = 1.0;
+
+         double bombDx0 = -10.0 * cos(0.5);
+         double bombDy0 = 10.0 * sin(0.5);
+         double bombStartX = dimensions.x - 1.0;
+         double bombStartY = 1.0;
+
+         double missileDx0 = -10.0 * cos(0.2);
+         double missileDy0 = 10.0 * sin(0.2);
+         double missileStartX = dimensions.x - 1.0;
+         double missileStartY = 1.0;
+
+         // Expected new missile (fired by M) uses gun.angle = 0.30, speed=10
+         double newMissileDx = -10.0 * cos(0.30);
+         double newMissileDy = 10.0 * sin(0.30);
+         double newMissileStartX = dimensions.x - 1.0;
+         double newMissileStartY = 1.0;
+
+         // retain the old settings for UserInput
+         bool ui_initilized = UserInput::initialized;
+         double ui_timePeriod = UserInput::timePeriod;
+         int ui_nextTick = UserInput::nextTick;
+         int ui_isDownPress = UserInput::isDownPress;
+         int ui_isUpPress = UserInput::isUpPress;
+         int ui_isLeftPress = UserInput::isLeftPress;
+         int ui_isRightPress = UserInput::isRightPress;
+         bool ui_isSpacePress = UserInput::isSpacePress;
+         bool ui_isBPress = UserInput::isBPress;
+         bool ui_isMPress = UserInput::isMPress;
+         bool ui_isShiftPress = UserInput::isShiftPress;
+         void *ui_p = UserInput::p;
+         void (*ui_callBack)(const UserInput *, void *) = UserInput::callBack;
+
+         // Prevent UserInput::initialize() from running in tests and set M
+         // pressed
+         UserInput::initialized = true;
+         UserInput::timePeriod = 0.0;
+         UserInput::nextTick = 0;
+         UserInput::isDownPress = 0;
+         UserInput::isUpPress = 0;
+         UserInput::isLeftPress = 0;
+         UserInput::isRightPress = 0;
+         UserInput::isSpacePress = false;
+         UserInput::isBPress = false;
+         UserInput::isMPress = true; // M pressed
+         UserInput::isShiftPress = false;
+         UserInput::p = nullptr;
+         UserInput::callBack = nullptr;
+
+         UserInput ui;
+
+         // EXERCISE
+         s.interact(ui);
+
+         // VERIFY
+         // New missile appended: original 3 + new = 4
+         assertUnit(4 == (int)s.bullets.size());
+
+         // Original pellet unchanged
+         {
+            auto it = s.bullets.begin();
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Pellet));
+            assertEqualsTolerance(
+               pelletDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               pelletDy0, (*it)->getVelocity().getDy(), tolerance);
+            assertEqualsTolerance(
+               pelletStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               pelletStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         // Original bomb unchanged
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Bomb));
+            assertEqualsTolerance(
+               bombDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               bombDy0, (*it)->getVelocity().getDy(), tolerance);
+            assertEqualsTolerance(
+               bombStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               bombStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         // Original missile unchanged
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Missile));
+            assertEqualsTolerance(
+               missileDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               missileDy0, (*it)->getVelocity().getDy(), tolerance);
+            assertEqualsTolerance(
+               missileStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               missileStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         // New missile appended and has velocity based on gun angle
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            ++it;
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Missile));
+            assertEqualsTolerance(
+               newMissileDx, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               newMissileDy, (*it)->getVelocity().getDy(), tolerance);
+            assertEqualsTolerance(
+               newMissileStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               newMissileStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         // No effects created by interact alone
+         assertUnit(0 == (int)s.effects.size());
+
+         // restore UserInput static state
+         UserInput::initialized = ui_initilized;
+         UserInput::timePeriod = ui_timePeriod;
+         UserInput::nextTick = ui_nextTick;
+         UserInput::isDownPress = ui_isDownPress;
+         UserInput::isUpPress = ui_isUpPress;
+         UserInput::isLeftPress = ui_isLeftPress;
+         UserInput::isRightPress = ui_isRightPress;
+         UserInput::isSpacePress = ui_isSpacePress;
+         UserInput::isBPress = ui_isBPress;
+         UserInput::isMPress = ui_isMPress;
+         UserInput::isShiftPress = ui_isShiftPress;
+         UserInput::p = ui_p;
+         UserInput::callBack = ui_callBack;
+
+         // TEARDOWN
+
+         Bullet::dimensions = dimensionsOriginal;
+
+         for (auto p : s.birds)
+            delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
+         s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
+      }
+
+      void test_interact_bBullets()
+      {
+         // SETUP
+         Position dimensionsOriginal = Bullet::dimensions;
+         Position dimensions;
+         dimensions.x = 1280.0;
+         dimensions.y = 720.0;
+         Skeet s(dimensions);
+
+         // Ensure lists are empty explicitly
+         assert(s.birds.empty() == true);
+         assert(s.bullets.empty() == true);
+         assert(s.effects.empty() == true);
+         assert(s.points.empty() == true);
+
+         // Ensure Bullet static dimensions for deterministic construction
+         Bullet::dimensions = dimensions;
+
+         // Create one of each bullet kind (existing on screen)
+         Pellet *pellet = new Pellet(0.0);
+         Bomb *bomb = new Bomb(0.5);
+         Missile *missile = new Missile(0.2);
+
+         // Add to skeet
+         s.bullets.push_back(pellet);
+         s.bullets.push_back(bomb);
+         s.bullets.push_back(missile);
+
+         // Explicitly set other state
+         s.gun.angle = 0.30;
+         s.gun.pt.x = 3.0;
+         s.gun.pt.y = 4.0;
+         s.score.points = 0;
+         s.hitRatio.numKilled = 0;
+         s.hitRatio.numMissed = 0;
+         s.dimensions = dimensions;
+         s.bullseye = false;
+
+         s.time.levelNumber = 4; // allow bombs to be fired (needs >2)
+         s.time.framesLeft = FRAMES_PER_SECOND * 15;
+
+         // initial velocities/positions from constructors
+         double pelletDx0 = -15.0 * cos(0.0);
+         double pelletDy0 = 15.0 * sin(0.0);
+         double pelletStartX = dimensions.x - 1.0;
+         double pelletStartY = 1.0;
+
+         double bombDx0 = -10.0 * cos(0.5);
+         double bombDy0 = 10.0 * sin(0.5);
+         double bombStartX = dimensions.x - 1.0;
+         double bombStartY = 1.0;
+
+         double missileDx0 = -10.0 * cos(0.2);
+         double missileDy0 = 10.0 * sin(0.2);
+         double missileStartX = dimensions.x - 1.0;
+         double missileStartY = 1.0;
+
+         // Expected new bomb (fired by B) uses gun.angle = 0.30, speed=10
+         double newBombDx = -10.0 * cos(0.30);
+         double newBombDy = 10.0 * sin(0.30);
+         double newBombStartX = dimensions.x - 1.0;
+         double newBombStartY = 1.0;
+
+         // retain the old settings for UserInput
+         bool ui_initilized = UserInput::initialized;
+         double ui_timePeriod = UserInput::timePeriod;
+         int ui_nextTick = UserInput::nextTick;
+         int ui_isDownPress = UserInput::isDownPress;
+         int ui_isUpPress = UserInput::isUpPress;
+         int ui_isLeftPress = UserInput::isLeftPress;
+         int ui_isRightPress = UserInput::isRightPress;
+         bool ui_isSpacePress = UserInput::isSpacePress;
+         bool ui_isBPress = UserInput::isBPress;
+         bool ui_isMPress = UserInput::isMPress;
+         bool ui_isShiftPress = UserInput::isShiftPress;
+         void *ui_p = UserInput::p;
+         void (*ui_callBack)(const UserInput *, void *) = UserInput::callBack;
+
+         // Prevent UserInput::initialize() from running in tests and set B
+         // pressed
+         UserInput::initialized = true;
+         UserInput::timePeriod = 0.0;
+         UserInput::nextTick = 0;
+         UserInput::isDownPress = 0;
+         UserInput::isUpPress = 0;
+         UserInput::isLeftPress = 0;
+         UserInput::isRightPress = 0;
+         UserInput::isSpacePress = false;
+         UserInput::isBPress = true; // B pressed
+         UserInput::isMPress = false;
+         UserInput::isShiftPress = false;
+         UserInput::p = nullptr;
+         UserInput::callBack = nullptr;
+
+         UserInput ui;
+
+         // EXERCISE
+         s.interact(ui);
+
+         // VERIFY
+         // New bomb appended: original 3 + new = 4
+         assertUnit(4 == (int)s.bullets.size());
+
+         // Original pellet unchanged
+         {
+            auto it = s.bullets.begin();
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Pellet));
+            assertEqualsTolerance(
+               pelletDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               pelletDy0, (*it)->getVelocity().getDy(), tolerance);
+         }
+
+         // Original bomb unchanged
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Bomb));
+            assertEqualsTolerance(
+               bombDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               bombDy0, (*it)->getVelocity().getDy(), tolerance);
+         }
+
+         // Original missile unchanged
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Missile));
+            assertEqualsTolerance(
+               missileDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               missileDy0, (*it)->getVelocity().getDy(), tolerance);
+         }
+
+         // New bomb appended and has velocity based on gun angle
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            ++it;
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Bomb));
+            assertEqualsTolerance(
+               newBombDx, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               newBombDy, (*it)->getVelocity().getDy(), tolerance);
+            assertEqualsTolerance(
+               newBombStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               newBombStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         // No effects created by interact alone
+         assertUnit(0 == (int)s.effects.size());
+
+         // restore UserInput static state
+         UserInput::initialized = ui_initilized;
+         UserInput::timePeriod = ui_timePeriod;
+         UserInput::nextTick = ui_nextTick;
+         UserInput::isDownPress = ui_isDownPress;
+         UserInput::isUpPress = ui_isUpPress;
+         UserInput::isLeftPress = ui_isLeftPress;
+         UserInput::isRightPress = ui_isRightPress;
+         UserInput::isSpacePress = ui_isSpacePress;
+         UserInput::isBPress = ui_isBPress;
+         UserInput::isMPress = ui_isMPress;
+         UserInput::isShiftPress = ui_isShiftPress;
+         UserInput::p = ui_p;
+         UserInput::callBack = ui_callBack;
+
+         // TEARDOWN
+
+         Bullet::dimensions = dimensionsOriginal;
+
+         for (auto p : s.birds)
+            delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
+         s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
+      }
+
+      void test_interact_keysBullets()
+      {
+         // SETUP
+         Position dimensionsOriginal = Bullet::dimensions;
+         Position dimensions;
+         dimensions.x = 1280.0;
+         dimensions.y = 720.0;
+         Skeet s(dimensions);
+
+         // Ensure lists are empty explicitly
+         assert(s.birds.empty() == true);
+         assert(s.bullets.empty() == true);
+         assert(s.effects.empty() == true);
+         assert(s.points.empty() == true);
+
+         // Ensure Bullet static dimensions for deterministic construction
+         Bullet::dimensions = dimensions;
+
+         // Create one of each bullet kind (existing on screen)
+         Pellet *pellet = new Pellet(0.0);
+         Bomb *bomb = new Bomb(0.5);
+         Missile *missile = new Missile(0.2);
+
+         // Add to skeet
+         s.bullets.push_back(pellet);
+         s.bullets.push_back(bomb);
+         s.bullets.push_back(missile);
+
+         // Explicitly set other state
+         s.gun.angle = 0.30;
+         s.gun.pt.x = 3.0;
+         s.gun.pt.y = 4.0;
+         s.score.points = 0;
+         s.hitRatio.numKilled = 0;
+         s.hitRatio.numMissed = 0;
+         s.dimensions = dimensions;
+         s.bullseye = false;
+
+         s.time.levelNumber =
+            4; // allow M and B if code path used (but SPACE takes precedence)
+         s.time.framesLeft = FRAMES_PER_SECOND * 15;
+
+         // initial velocities/positions from constructors
+         double pelletDx0 = -15.0 * cos(0.0);
+         double pelletDy0 = 15.0 * sin(0.0);
+
+         double bombDx0 = -10.0 * cos(0.5);
+         double bombDy0 = 10.0 * sin(0.5);
+
+         double missileDx0 = -10.0 * cos(0.2);
+         double missileDy0 = 10.0 * sin(0.2);
+
+         // Expected new pellet (SPACE wins when all keys pressed)
+         double newPelletDx = -15.0 * cos(0.30);
+         double newPelletDy = 15.0 * sin(0.30);
+         double newPelletStartX = dimensions.x - 1.0;
+         double newPelletStartY = 1.0;
+
+         // retain the old settings for UserInput
+         bool ui_initilized = UserInput::initialized;
+         double ui_timePeriod = UserInput::timePeriod;
+         int ui_nextTick = UserInput::nextTick;
+         int ui_isDownPress = UserInput::isDownPress;
+         int ui_isUpPress = UserInput::isUpPress;
+         int ui_isLeftPress = UserInput::isLeftPress;
+         int ui_isRightPress = UserInput::isRightPress;
+         bool ui_isSpacePress = UserInput::isSpacePress;
+         bool ui_isBPress = UserInput::isBPress;
+         bool ui_isMPress = UserInput::isMPress;
+         bool ui_isShiftPress = UserInput::isShiftPress;
+         void *ui_p = UserInput::p;
+         void (*ui_callBack)(const UserInput *, void *) = UserInput::callBack;
+
+         // Prevent UserInput::initialize() from running in tests and set all
+         // three pressed
+         UserInput::initialized = true;
+         UserInput::timePeriod = 0.0;
+         UserInput::nextTick = 0;
+         UserInput::isDownPress = 0;
+         UserInput::isUpPress = 0;
+         UserInput::isLeftPress = 0;
+         UserInput::isRightPress = 0;
+         UserInput::isSpacePress = true; // SPACE pressed - takes precedence
+         UserInput::isBPress = true;
+         UserInput::isMPress = true;
+         UserInput::isShiftPress = false;
+         UserInput::p = nullptr;
+         UserInput::callBack = nullptr;
+
+         UserInput ui;
+
+         // EXERCISE
+         s.interact(ui);
+
+         // VERIFY
+         // SPACE is processed first in interact -> new pellet appended: 3 + 1 =
+         // 4
+         assertUnit(4 == (int)s.bullets.size());
+
+         // Original pellet unchanged
+         {
+            auto it = s.bullets.begin();
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Pellet));
+            assertEqualsTolerance(
+               pelletDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               pelletDy0, (*it)->getVelocity().getDy(), tolerance);
+         }
+
+         // Original bomb unchanged
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Bomb));
+            assertEqualsTolerance(
+               bombDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               bombDy0, (*it)->getVelocity().getDy(), tolerance);
+         }
+
+         // Original missile unchanged
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Missile));
+            assertEqualsTolerance(
+               missileDx0, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               missileDy0, (*it)->getVelocity().getDy(), tolerance);
+         }
+
+         // New pellet appended and has velocity based on gun angle
+         {
+            auto it = s.bullets.begin();
+            ++it;
+            ++it;
+            ++it;
+            assert(it != s.bullets.end());
+            assertUnit(typeid(*(*it)) == typeid(Pellet));
+            assertEqualsTolerance(
+               newPelletDx, (*it)->getVelocity().getDx(), tolerance);
+            assertEqualsTolerance(
+               newPelletDy, (*it)->getVelocity().getDy(), tolerance);
+            assertEqualsTolerance(
+               newPelletStartX, (*it)->getPosition().getX(), tolerance);
+            assertEqualsTolerance(
+               newPelletStartY, (*it)->getPosition().getY(), tolerance);
+         }
+
+         // No effects created by interact alone
+         assertUnit(0 == (int)s.effects.size());
+
+         // restore UserInput static state
+         UserInput::initialized = ui_initilized;
+         UserInput::timePeriod = ui_timePeriod;
+         UserInput::nextTick = ui_nextTick;
+         UserInput::isDownPress = ui_isDownPress;
+         UserInput::isUpPress = ui_isUpPress;
+         UserInput::isLeftPress = ui_isLeftPress;
+         UserInput::isRightPress = ui_isRightPress;
+         UserInput::isSpacePress = ui_isSpacePress;
+         UserInput::isBPress = ui_isBPress;
+         UserInput::isMPress = ui_isMPress;
+         UserInput::isShiftPress = ui_isShiftPress;
+         UserInput::p = ui_p;
+         UserInput::callBack = ui_callBack;
+
+         // TEARDOWN
+
+         Bullet::dimensions = dimensionsOriginal;
+
+         for (auto p : s.birds)
+            delete p;
+         for (auto p : s.bullets)
+            delete p;
+         for (auto p : s.effects)
+            delete p;
+         s.birds.clear();
+         s.bullets.clear();
+         s.effects.clear();
       }
 };

@@ -17,6 +17,7 @@ class Effect
 {
       // allow unit tests direct access to private/protected members
       friend class TestEffect;
+      friend class TestSkeet;
 
    protected:
       Position pt; // location of the effect

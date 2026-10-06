@@ -28,6 +28,11 @@ using std::min;
  ********************************************/
 class UserInput
 {
+      // Allow unit tests direct access to private members for deterministic
+      // testing. TestSkeet will be a friend so tests can explicitly set the
+      // static state.
+      friend class TestSkeet;
+
    public:
       // Default constructor useful for setting up the random variables
       // or for opening the file for output

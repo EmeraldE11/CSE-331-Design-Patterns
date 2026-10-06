@@ -39,40 +39,6 @@
 /***************************************************************/
 /***************************************************************/
 
-/******************************************************************************
- * Factory for different common varieties of birds
- *****************************************************************************/
-Bird *Bird::factory(BirdType type)
-{
-   switch (type)
-   {
-      case BIRD_STANDARD_LEVEL_1:
-         return new Standard(30.0, 7.0, 10);
-      case BIRD_STANDARD_LEVEL_2:
-         return new Standard(25.0, 5.0, 12);
-      case BIRD_STANDARD_LEVEL_3:
-         return new Standard(20.0, 5.0, 15);
-      case BIRD_STANDARD_LEVEL_4:
-         return new Standard(15.0, 4.0, 18);
-      case BIRD_SINKER_LEVEL_2:
-         return new Sinker(25.0, 4.5, 20);
-      case BIRD_SINKER_LEVEL_3:
-         return new Sinker(20.0, 4.0, 22);
-      case BIRD_SINKER_LEVEL_4:
-         return new Sinker(15.0, 3.5, 25);
-      case BIRD_FLOATER_LEVEL_3:
-         return new Floater(20.0, 5.0, 15);
-      case BIRD_FLOATER_LEVEL_4:
-         return new Floater(15.0, 4.0, 25);
-      case BIRD_CRAZY_LEVEL_4:
-         return new Crazy(15.0, 4.5, 30);
-      default:
-         // If another bird type is added, then a new case
-         // constructing the type should be inserted above
-         assert(!"unknown bird type");
-   }
-}
-
 /******************************************************************
  * STANDARD constructor
  ******************************************************************/

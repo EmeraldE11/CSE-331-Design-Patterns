@@ -21,6 +21,7 @@
 class Bullet
 {
       friend class TestBullet;
+      friend class TestSkeet;
 
    protected:
       static Position dimensions; // size of the screen

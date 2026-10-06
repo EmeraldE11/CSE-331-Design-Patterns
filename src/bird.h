@@ -10,20 +10,6 @@
 #pragma once
 #include "position.h"
 
-enum BirdType
-{
-   BIRD_STANDARD_LEVEL_1,
-   BIRD_STANDARD_LEVEL_2,
-   BIRD_STANDARD_LEVEL_3,
-   BIRD_STANDARD_LEVEL_4,
-   BIRD_SINKER_LEVEL_2,
-   BIRD_SINKER_LEVEL_3,
-   BIRD_SINKER_LEVEL_4,
-   BIRD_FLOATER_LEVEL_3,
-   BIRD_FLOATER_LEVEL_4,
-   BIRD_CRAZY_LEVEL_4,
-};
-
 /**********************
  * BIRD
  * Everything that can be shot
@@ -43,7 +29,6 @@ class Bird
 
    public:
       Bird() : dead(false), points(0), radius(1.0) {}
-      static Bird *factory(BirdType type);
 
       // setters
       void operator=(const Position &rhs) { pt = rhs; }
