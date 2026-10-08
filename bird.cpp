@@ -58,6 +58,10 @@ Standard::Standard(double radius, double speed, int points) : Bird()
 
    // set the size
    this->radius = radius;
+
+	// set the fragments of advance behavior
+	addAdvanceFragment(new DragFragment(0.995));
+	addAdvanceFragment(new InertiaFragment());
 }
 
 /******************************************************************
@@ -78,6 +82,11 @@ Floater::Floater(double radius, double speed, int points) : Bird()
 
    // set the size
    this->radius = radius;
+
+   // set the fragments of advance behavior
+   addAdvanceFragment(new DragFragment(0.990));
+   addAdvanceFragment(new InertiaFragment());
+	addAdvanceFragment(new GravityFragment(0.05));
 }
 
 /******************************************************************
@@ -98,6 +107,10 @@ Sinker::Sinker(double radius, double speed, int points) : Bird()
 
    // set the size
    this->radius = radius;
+
+	// set the fragments of advance behavior
+	addAdvanceFragment(new GravityFragment(-0.07));
+	addAdvanceFragment(new InertiaFragment());
 }
 
 /******************************************************************
@@ -118,6 +131,10 @@ Crazy::Crazy(double radius, double speed, int points) : Bird()
 
    // set the size
    this->radius = radius;
+
+   // set the fragments of advance behavior
+   addAdvanceFragment(new RandomDirectionFragment());
+   addAdvanceFragment(new InertiaFragment());
 }
 
  /***************************************************************/
@@ -126,17 +143,12 @@ Crazy::Crazy(double radius, double speed, int points) : Bird()
  /***************************************************************/
  /***************************************************************/
 
-/*********************************************
- * STANDARD ADVANCE
- * How the standard bird moves - inertia and drag
- *********************************************/
-void Standard::advance()
+void Bird::advance()
 {
-   // small amount of drag
-   v *= 0.995;
-
-   // inertia
-   pt.add(v);
+	for (auto fragment : fragments)
+	{
+		fragment->advance(*this);
+	}
 
    // out of bounds checker
    if (isOutOfBounds())
@@ -146,71 +158,37 @@ void Standard::advance()
    }
 }
 
-/*********************************************
- * FLOATER ADVANCE
- * How the floating bird moves: strong drag and anti-gravity
- *********************************************/
-void Floater::advance()
+void DragFragment::advance(Bird& bird)
 {
-   // large amount of drag
-   v *= 0.990;
-
-   // inertia
-   pt.add(v);
-
-   // anti-gravity
-   v.addDy(0.05);
-
-   // out of bounds checker
-   if (isOutOfBounds())
-   {
-      kill();
-      points *= -1; // points go negative when it is missed!
-   }
+	Velocity v = bird.getVelocity();
+	v *= drag;
+   bird = v;
 }
 
-/*********************************************
- * CRAZY ADVANCE
- * How the crazy bird moves, every half a second it changes direciton
- *********************************************/
-void Crazy::advance()
+void InertiaFragment::advance(Bird& bird)
 {
-   // erratic turns eery half a second or so
-   if (randomInt(0, 15) == 0)
-   {
-      v.addDy(randomDouble(-1.5, 1.5));
-      v.addDx(randomDouble(-1.5, 1.5));
-   }
-
-   // inertia
-   pt.add(v);
-
-   // out of bounds checker
-   if (isOutOfBounds())
-   {
-      kill();
-      points *= -1; // points go negative when it is missed!
-   }
+	Position  pt = bird.getPosition();
+	pt.add(bird.getVelocity());
+	bird = pt;
 }
 
-/*********************************************
- * SINKER ADVANCE
- * How the sinker bird moves, no drag but gravity
- *********************************************/
-void Sinker::advance()
+void GravityFragment::advance(Bird& bird) // gravity is negative, if positive, it acts like a floater
 {
-   // gravity
-   v.addDy(-0.07);
+	Velocity v = bird.getVelocity();
+	v.addDy(gravity);
+	bird = v;
+}
 
-   // inertia
-   pt.add(v);
+void RandomDirectionFragment::advance(Bird& bird)
+{
+	if (randomInt(0, 15) == 0)
+	{
+		Velocity v = bird.getVelocity();
 
-   // out of bounds checker
-   if (isOutOfBounds())
-   {
-      kill();
-      points *= -1; // points go negative when it is missed!
-   }
+		v.addDy(randomDouble(-1.5, 1.5));
+		v.addDx(randomDouble(-1.5, 1.5));
+		bird = v;
+	}
 }
 
 /***************************************************************/

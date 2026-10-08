@@ -9,6 +9,10 @@
 
 #pragma once
 #include "position.h"
+#include <vector>
+using namespace std;
+
+class AdvanceFragment;
 
 /**********************
  * BIRD
@@ -25,9 +29,22 @@ protected:
    double radius;             // the size (radius) of the flyer
    bool dead;                 // is this flyer dead?
    int points;                // how many points is this worth?
-   
+   vector<AdvanceFragment*> fragments; // list of fragments of advance behavior
+
+   void addAdvanceFragment(AdvanceFragment* fragment)
+   {
+      fragments.push_back(fragment);
+   }
+
 public:
    Bird() : dead(false), points(0), radius(1.0) { }
+	virtual ~Bird()
+	{
+		for (auto fragment : fragments)
+		{
+			delete fragment;
+		}
+	}
    
    // setters
    void operator=(const Position    & rhs) { pt = rhs;    }
@@ -49,8 +66,51 @@ public:
 
    // special functions
    virtual void draw() = 0;
-   virtual void advance() = 0;
+   virtual void advance();
 };
+
+// My code
+class AdvanceFragment
+{
+public:
+	virtual void advance(Bird& bird) = 0;
+	virtual ~AdvanceFragment() {}
+};
+
+class InertiaFragment : public AdvanceFragment
+{
+public:
+   void advance(Bird& bird) override;
+};
+
+class GravityFragment : public AdvanceFragment
+{
+private:
+	double gravity;
+
+public:
+	GravityFragment(double gravity) : gravity(gravity) {}
+	void advance(Bird& bird) override;
+};
+
+class DragFragment : public AdvanceFragment
+{
+private:
+	double drag;
+public:
+	DragFragment(double drag) : drag(drag) {}
+	void advance(Bird& bird) override;
+};
+
+class RandomDirectionFragment : public AdvanceFragment
+{
+public:
+	void advance(Bird& bird) override;
+};
+
+// end My code
+
+
 
 /*********************************************
  * STANDARD
@@ -62,7 +122,6 @@ class Standard : public Bird
 public:
     Standard(double radius = 25.0, double speed = 5.0, int points = 10);
     void draw();
-    void advance();
 };
 
 /*********************************************
@@ -75,7 +134,6 @@ class Floater : public Bird
 public:
     Floater(double radius = 30.0, double speed = 5.0, int points = 15);
     void draw();
-    void advance();
 };
 
 /*********************************************
@@ -88,7 +146,6 @@ class Crazy : public Bird
 public:
     Crazy(double radius = 30.0, double speed = 4.5, int points = 30);
     void draw();
-    void advance();
 };
 
 /*********************************************
@@ -100,7 +157,6 @@ class Sinker : public Bird
 public:
     Sinker(double radius = 30.0, double speed = 4.5, int points = 20);
     void draw();
-    void advance();
 };
 
 
