@@ -12,7 +12,6 @@ class Advance
       virtual ~Advance() = default;
 };
 
-
 // ----------------------------------------------------------------------------
 // STANDARDADVANCE - concrete advance strategy for the standard bird
 // ----------------------------------------------------------------------------
