@@ -8,7 +8,9 @@
  ************************************************************************/
 
 #pragma once
+#include "advance.h"
 #include "position.h"
+#include <memory>
 
 /**********************
  * BIRD
@@ -19,6 +21,11 @@ class Bird
       friend class TestBird;
       friend class TestSkeet;
 
+      friend class StandardAdvance;
+      friend class CrazyAdvance;
+      friend class SinkerAdvance;
+      friend class FloaterAdvance;
+
    protected:
       static Position dimensions; // size of the screen
       Position pt;                // position of the flyer
@@ -26,6 +33,8 @@ class Bird
       double radius;              // the size (radius) of the flyer
       bool dead;                  // is this flyer dead?
       int points;                 // how many points is this worth?
+
+      std::unique_ptr<Advance> aStrategy; // strategy used for advance method
 
    public:
       Bird() : dead(false), points(0), radius(1.0) {}
@@ -51,7 +60,7 @@ class Bird
 
       // special functions
       virtual void draw() = 0;
-      virtual void advance() = 0;
+      void advance() { aStrategy->execute(this); }
 };
 
 /*********************************************
@@ -65,7 +74,6 @@ class Standard : public Bird
    public:
       Standard(double radius = 25.0, double speed = 5.0, int points = 10);
       void draw();
-      void advance();
 };
 
 /*********************************************
@@ -79,7 +87,6 @@ class Floater : public Bird
    public:
       Floater(double radius = 30.0, double speed = 5.0, int points = 15);
       void draw();
-      void advance();
 };
 
 /*********************************************
@@ -93,7 +100,6 @@ class Crazy : public Bird
    public:
       Crazy(double radius = 30.0, double speed = 4.5, int points = 30);
       void draw();
-      void advance();
 };
 
 /*********************************************
@@ -105,7 +111,6 @@ class Sinker : public Bird
    public:
       Sinker(double radius = 30.0, double speed = 4.5, int points = 20);
       void draw();
-      void advance();
 };
 
 /*********************************************
@@ -119,11 +124,6 @@ class BirdFake : public Bird
    public:
       BirdFake() : Bird() {}
       void draw() override
-      {
-         // If this is called the test should fail.
-         assert(false);
-      }
-      void advance() override
       {
          // If this is called the test should fail.
          assert(false);
