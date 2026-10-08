@@ -2,10 +2,9 @@
 
 class Bird;
 
-/**********************
- * ADVANCE
- * Algorithm Abstraction - Strategy (for the advance function)
- **********************/
+// ----------------------------------------------------------------------------
+// ADVANCE - Algorithm Abstraction - Strategy (for the advance function)
+// ----------------------------------------------------------------------------
 class Advance
 {
    public:
@@ -13,40 +12,37 @@ class Advance
       virtual ~Advance() = default;
 };
 
-/**********************
- * STANDARDADVANCE
- * concrete advance strategy for the standard bird
- **********************/
+
+// ----------------------------------------------------------------------------
+// STANDARDADVANCE - concrete advance strategy for the standard bird
+// ----------------------------------------------------------------------------
 class StandardAdvance : public Advance
 {
    public:
       void execute(Bird *context);
 };
 
-/**********************
- * CRAZYADVANCE
- * concrete advance strategy for the crazy bird
- **********************/
+// ----------------------------------------------------------------------------
+// CRAZYADVANCE - concrete advance strategy for the crazy bird
+// ----------------------------------------------------------------------------
 class CrazyAdvance : public Advance
 {
    public:
       void execute(Bird *context);
 };
 
-/**********************
- * SINKERADVANCE
- * concrete advance strategy for the sinker bird
- **********************/
+// ----------------------------------------------------------------------------
+// SINKERADVANCE - concrete advance strategy for the sinker bird
+// ----------------------------------------------------------------------------
 class SinkerAdvance : public Advance
 {
    public:
       void execute(Bird *context);
 };
 
-/**********************
- * FLOATERADVANCE
- * concrete advance strategy for the floater bird
- **********************/
+// ----------------------------------------------------------------------------
+// FLOATERADVANCE - concrete advance strategy for the floater bird
+// ----------------------------------------------------------------------------
 class FloaterAdvance : public Advance
 {
    public:
