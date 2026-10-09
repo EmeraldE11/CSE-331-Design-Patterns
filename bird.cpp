@@ -34,183 +34,90 @@
 #endif // _WIN32
 
 
-/***************************************************************/
-/***************************************************************/
-/*                         CONSTRUCTORS                         */
-/***************************************************************/
-/***************************************************************/
+ /***************************************************************/
+ /***************************************************************/
+ /*                         CONSTRUCTORS                         */
+ /***************************************************************/
+ /***************************************************************/
 
-/******************************************************************
- * STANDARD constructor
- ******************************************************************/
-Standard::Standard(double radius, double speed, int points) : Bird()
+ /******************************************************************
+  * STANDARD constructor
+  ******************************************************************/
+Standard::Standard(double radius, double speed, int points) : Bird(new StandardAdvance)
 {
-   // set the position: standard birds start from the middle
-   pt.setY(randomDouble(dimensions.getY() * 0.25, dimensions.getY() * 0.75));
-   pt.setX(0.0);
+    // set the position: standard birds start from the middle
+    pt.setY(randomDouble(dimensions.getY() * 0.25, dimensions.getY() * 0.75));
+    pt.setX(0.0);
 
-   // set the velocity
-   v.setDx(randomDouble(speed - 0.5, speed + 0.5));
-   v.setDy(randomDouble(-speed / 5.0, speed / 5.0));
+    // set the velocity
+    v.setDx(randomDouble(speed - 0.5, speed + 0.5));
+    v.setDy(randomDouble(-speed / 5.0, speed / 5.0));
 
-   // set the points
-   this->points = points;
+    // set the points
+    this->points = points;
 
-   // set the size
-   this->radius = radius;
+    // set the size
+    this->radius = radius;
 }
 
 /******************************************************************
  * FLOATER constructor
  ******************************************************************/
-Floater::Floater(double radius, double speed, int points) : Bird()
+Floater::Floater(double radius, double speed, int points) : Bird(new FloaterAdvance)
 {
-   // floaters start on the lower part of the screen because they go up with time
-   pt.setY(randomDouble(dimensions.getY() * 0.01, dimensions.getY() * 0.5));
-   pt.setX(0.0);
+    // floaters start on the lower part of the screen because they go up with time
+    pt.setY(randomDouble(dimensions.getY() * 0.01, dimensions.getY() * 0.5));
+    pt.setX(0.0);
 
-   // set the velocity
-   v.setDx(randomDouble(speed - 0.5, speed + 0.5));
-   v.setDy(randomDouble(0.0, speed / 3.0));
+    // set the velocity
+    v.setDx(randomDouble(speed - 0.5, speed + 0.5));
+    v.setDy(randomDouble(0.0, speed / 3.0));
 
-   // set the points value
-   this->points = points;
+    // set the points value
+    this->points = points;
 
-   // set the size
-   this->radius = radius;
+    // set the size
+    this->radius = radius;
 }
 
 /******************************************************************
  * SINKER constructor
  ******************************************************************/
-Sinker::Sinker(double radius, double speed, int points) : Bird()
+Sinker::Sinker(double radius, double speed, int points) : Bird(new SinkerAdvance)
 {
-   // sinkers start on the upper part of the screen because they go down with time
-   pt.setY(randomDouble(dimensions.getY() * 0.50, dimensions.getY() * 0.95));
-   pt.setX(0.0);
+    // sinkers start on the upper part of the screen because they go down with time
+    pt.setY(randomDouble(dimensions.getY() * 0.50, dimensions.getY() * 0.95));
+    pt.setX(0.0);
 
-   // set the velocity
-   v.setDx(randomDouble(speed - 0.5, speed + 0.5));
-   v.setDy(randomDouble(-speed / 3.0, 0.0));
+    // set the velocity
+    v.setDx(randomDouble(speed - 0.5, speed + 0.5));
+    v.setDy(randomDouble(-speed / 3.0, 0.0));
 
-   // set the points value
-   this->points = points;
+    // set the points value
+    this->points = points;
 
-   // set the size
-   this->radius = radius;
+    // set the size
+    this->radius = radius;
 }
 
 /******************************************************************
  * CRAZY constructor
  ******************************************************************/
-Crazy::Crazy(double radius, double speed, int points) : Bird()
+Crazy::Crazy(double radius, double speed, int points) : Bird(new CrazyAdvance)
 {
-   // crazy birds start in the middle and can go any which way
-   pt.setY(randomDouble(dimensions.getY() * 0.25, dimensions.getY() * 0.75));
-   pt.setX(0.0);
+    // crazy birds start in the middle and can go any which way
+    pt.setY(randomDouble(dimensions.getY() * 0.25, dimensions.getY() * 0.75));
+    pt.setX(0.0);
 
-   // set the velocity
-   v.setDx(randomDouble(speed - 0.5, speed + 0.5));
-   v.setDy(randomDouble(-speed / 5.0, speed / 5.0));
+    // set the velocity
+    v.setDx(randomDouble(speed - 0.5, speed + 0.5));
+    v.setDy(randomDouble(-speed / 5.0, speed / 5.0));
 
-   // set the points value
-   this->points = points;
+    // set the points value
+    this->points = points;
 
-   // set the size
-   this->radius = radius;
-}
-
- /***************************************************************/
- /***************************************************************/
- /*                            ADVANCE                          */
- /***************************************************************/
- /***************************************************************/
-
-/*********************************************
- * STANDARD ADVANCE
- * How the standard bird moves - inertia and drag
- *********************************************/
-void Standard::advance()
-{
-   // small amount of drag
-   v *= 0.995;
-
-   // inertia
-   pt.add(v);
-
-   // out of bounds checker
-   if (isOutOfBounds())
-   {
-      kill();
-      points *= -1; // points go negative when it is missed!
-   }
-}
-
-/*********************************************
- * FLOATER ADVANCE
- * How the floating bird moves: strong drag and anti-gravity
- *********************************************/
-void Floater::advance()
-{
-   // large amount of drag
-   v *= 0.990;
-
-   // inertia
-   pt.add(v);
-
-   // anti-gravity
-   v.addDy(0.05);
-
-   // out of bounds checker
-   if (isOutOfBounds())
-   {
-      kill();
-      points *= -1; // points go negative when it is missed!
-   }
-}
-
-/*********************************************
- * CRAZY ADVANCE
- * How the crazy bird moves, every half a second it changes direciton
- *********************************************/
-void Crazy::advance()
-{
-   // erratic turns eery half a second or so
-   if (randomInt(0, 15) == 0)
-   {
-      v.addDy(randomDouble(-1.5, 1.5));
-      v.addDx(randomDouble(-1.5, 1.5));
-   }
-
-   // inertia
-   pt.add(v);
-
-   // out of bounds checker
-   if (isOutOfBounds())
-   {
-      kill();
-      points *= -1; // points go negative when it is missed!
-   }
-}
-
-/*********************************************
- * SINKER ADVANCE
- * How the sinker bird moves, no drag but gravity
- *********************************************/
-void Sinker::advance()
-{
-   // gravity
-   v.addDy(-0.07);
-
-   // inertia
-   pt.add(v);
-
-   // out of bounds checker
-   if (isOutOfBounds())
-   {
-      kill();
-      points *= -1; // points go negative when it is missed!
-   }
+    // set the size
+    this->radius = radius;
 }
 
 /***************************************************************/
@@ -224,38 +131,38 @@ void Sinker::advance()
  * Draw a filled circule at [center] with size [radius]
  *************************************************************************/
 static void drawDisk(const Position& center, double radius,
-              double red, double green, double blue)
+    double red, double green, double blue)
 {
-   assert(radius > 1.0);
-   const double increment = M_PI / radius;  // bigger the circle, the more increments
+    assert(radius > 1.0);
+    const double increment = M_PI / radius;  // bigger the circle, the more increments
 
-   // begin drawing
-   glBegin(GL_TRIANGLES);
-   glColor3f((GLfloat)red /* red % */, (GLfloat)green /* green % */, (GLfloat)blue /* blue % */);
+    // begin drawing
+    glBegin(GL_TRIANGLES);
+    glColor3f((GLfloat)red /* red % */, (GLfloat)green /* green % */, (GLfloat)blue /* blue % */);
 
-   // three points: center, pt1, pt2
-   Position pt1;
-   pt1.setX(center.getX() + (radius * cos(0.0)));
-   pt1.setY(center.getY() + (radius * sin(0.0)));
-   Position pt2(pt1);
+    // three points: center, pt1, pt2
+    Position pt1;
+    pt1.setX(center.getX() + (radius * cos(0.0)));
+    pt1.setY(center.getY() + (radius * sin(0.0)));
+    Position pt2(pt1);
 
-   // go around the circle
-   for (double radians = increment;
-      radians <= M_PI * 2.0 + .5;
-      radians += increment)
-   {
-      pt2.setX(center.getX() + (radius * cos(radians)));
-      pt2.setY(center.getY() + (radius * sin(radians)));
+    // go around the circle
+    for (double radians = increment;
+        radians <= M_PI * 2.0 + .5;
+        radians += increment)
+    {
+        pt2.setX(center.getX() + (radius * cos(radians)));
+        pt2.setY(center.getY() + (radius * sin(radians)));
 
-      glVertex2f((GLfloat)center.getX(), (GLfloat)center.getY());
-      glVertex2f((GLfloat)pt1.getX(), (GLfloat)pt1.getY());
-      glVertex2f((GLfloat)pt2.getX(), (GLfloat)pt2.getY());
+        glVertex2f((GLfloat)center.getX(), (GLfloat)center.getY());
+        glVertex2f((GLfloat)pt1.getX(), (GLfloat)pt1.getY());
+        glVertex2f((GLfloat)pt2.getX(), (GLfloat)pt2.getY());
 
-      pt1 = pt2;
-   }
+        pt1 = pt2;
+    }
 
-   // complete drawing
-   glEnd();
+    // complete drawing
+    glEnd();
 }
 
 /*********************************************
@@ -264,11 +171,11 @@ static void drawDisk(const Position& center, double radius,
  *********************************************/
 void Standard::draw()
 {
-   if (!isDead())
-   {
-      drawDisk(pt, radius - 0.0, 1.0, 1.0, 1.0); // white outline
-      drawDisk(pt, radius - 3.0, 0.0, 0.0, 1.0); // blue center
-   }
+    if (!isDead())
+    {
+        drawDisk(pt, radius - 0.0, 1.0, 1.0, 1.0); // white outline
+        drawDisk(pt, radius - 3.0, 0.0, 0.0, 1.0); // blue center
+    }
 }
 
 /*********************************************
@@ -277,11 +184,11 @@ void Standard::draw()
  *********************************************/
 void Floater::draw()
 {
-   if (!isDead())
-   {
-      drawDisk(pt, radius - 0.0, 0.0, 0.0, 1.0); // blue outline
-      drawDisk(pt, radius - 4.0, 1.0, 1.0, 1.0); // white center
-   }
+    if (!isDead())
+    {
+        drawDisk(pt, radius - 0.0, 0.0, 0.0, 1.0); // blue outline
+        drawDisk(pt, radius - 4.0, 1.0, 1.0, 1.0); // white center
+    }
 }
 
 /*********************************************
@@ -290,14 +197,14 @@ void Floater::draw()
  *********************************************/
 void Crazy::draw()
 {
-   if (!isDead())
-   {
-      drawDisk(pt, radius * 1.0, 0.0, 0.0, 1.0); // bright blue outside
-      drawDisk(pt, radius * 0.8, 0.2, 0.2, 1.0);
-      drawDisk(pt, radius * 0.6, 0.4, 0.4, 1.0);
-      drawDisk(pt, radius * 0.4, 0.6, 0.6, 1.0);
-      drawDisk(pt, radius * 0.2, 0.8, 0.8, 1.0); // almost white inside
-   }
+    if (!isDead())
+    {
+        drawDisk(pt, radius * 1.0, 0.0, 0.0, 1.0); // bright blue outside
+        drawDisk(pt, radius * 0.8, 0.2, 0.2, 1.0);
+        drawDisk(pt, radius * 0.6, 0.4, 0.4, 1.0);
+        drawDisk(pt, radius * 0.4, 0.6, 0.6, 1.0);
+        drawDisk(pt, radius * 0.2, 0.8, 0.8, 1.0); // almost white inside
+    }
 }
 
 /*********************************************
@@ -306,9 +213,9 @@ void Crazy::draw()
  *********************************************/
 void Sinker::draw()
 {
-   if (!isDead())
-   {
-      drawDisk(pt, radius - 0.0, 0.0, 0.0, 0.8);
-      drawDisk(pt, radius - 4.0, 0.0, 0.0, 0.0);
-   }
+    if (!isDead())
+    {
+        drawDisk(pt, radius - 0.0, 0.0, 0.0, 0.8);
+        drawDisk(pt, radius - 4.0, 0.0, 0.0, 0.0);
+    }
 }

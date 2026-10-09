@@ -31,22 +31,22 @@
 #define GLUT_TEXT GLUT_BITMAP_HELVETICA_12
 #endif // _WIN32
 
-/*********************************************
- * BULLET constructor
- *********************************************/
+ /*********************************************
+  * BULLET constructor
+  *********************************************/
 Bullet::Bullet(double angle, double speed, double radius, int value) :
-   dead(false), radius(radius), value(value)
+    dead(false), radius(radius), value(value)
 {
-   // set the initial position
-   pt.setX(dimensions.getX() - 1.0);
-   pt.setY(1.0);
-   assert(pt.getX() > 100.0);
+    // set the initial position
+    pt.setX(dimensions.getX() - 1.0);
+    pt.setY(1.0);
+    assert(pt.getX() > 100.0);
 
-   // set the initial velocity
-   v.setDx(-speed * cos(angle));
-   v.setDy(speed * sin(angle));
-   assert(v.getDx() <= 0.0);
-   assert(v.getDy() >= 0.0);
+    // set the initial velocity
+    v.setDx(-speed * cos(angle));
+    v.setDy(speed * sin(angle));
+    assert(v.getDx() <= 0.0);
+    assert(v.getDy() >= 0.0);
 }
 
 /*********************************************
@@ -55,35 +55,35 @@ Bullet::Bullet(double angle, double speed, double radius, int value) :
  *********************************************/
 void Bomb::death(std::list<Bullet*>& bullets)
 {
-   for (int i = 0; i < 20; i++)
-      bullets.push_back(new Shrapnel(*this));
+    for (int i = 0; i < 20; i++)
+        bullets.push_back(new Shrapnel(*this));
 }
 
- /***************************************************************/
- /***************************************************************/
- /*                             MOVE                            */
- /***************************************************************/
- /***************************************************************/
+/***************************************************************/
+/***************************************************************/
+/*                             MOVE                            */
+/***************************************************************/
+/***************************************************************/
 
 /*********************************************
  * BULLET MOVE
  * Move the bullet along by one time period
  *********************************************/
-void Bullet::move(std::list<Effect*> & effects)
+void Bullet::move(std::list<Effect*>& effects)
 {
-   // inertia
-   pt.add(v);
+    // inertia
+    pt.add(v);
 
-   // out of bounds checker
-   if (isOutOfBounds())
-      kill();
+    // out of bounds checker
+    if (isOutOfBounds())
+        kill();
 }
 
 /*********************************************
  * BOMB MOVE
  * Move the bomb along by one time period
  *********************************************/
-void Bomb::move(std::list<Effect*> & effects)
+void Bomb::move(std::list<Effect*>& effects)
 {
     // kill if it has been around too long
     timeToDie--;
@@ -98,10 +98,10 @@ void Bomb::move(std::list<Effect*> & effects)
  * MISSILE MOVE
  * Move the missile along by one time period
  *********************************************/
-void Missile::move(std::list<Effect*> & effects)
+void Missile::move(std::list<Effect*>& effects)
 {
     // kill if it has been around too long
-   effects.push_back(new Exhaust(pt, v));
+    effects.push_back(new Exhaust(pt, v));
 
     // do the inertia thing
     Bullet::move(effects);
@@ -111,7 +111,7 @@ void Missile::move(std::list<Effect*> & effects)
  * SHRAPNEL MOVE
  * Move the shrapnel along by one time period
  *********************************************/
-void Shrapnel::move(std::list<Effect*> & effects)
+void Shrapnel::move(std::list<Effect*>& effects)
 {
     // kill if it has been around too long
     timeToDie--;
@@ -120,7 +120,7 @@ void Shrapnel::move(std::list<Effect*> & effects)
 
     // add a streek
     effects.push_back(new Streek(pt, v));
-    
+
     // do the usual bullet stuff (like inertia)
     Bullet::move(effects);
 }
@@ -137,7 +137,7 @@ void Shrapnel::move(std::list<Effect*> & effects)
  *************************************************************************/
 static inline void glVertexPoint(const Position& point)
 {
-   glVertex2f((GLfloat)point.getX(), (GLfloat)point.getY());
+    glVertex2f((GLfloat)point.getX(), (GLfloat)point.getY());
 }
 
 /************************************************************************
@@ -145,19 +145,19 @@ static inline void glVertexPoint(const Position& point)
  * Draw a line on the screen from the beginning to the end.
  *************************************************************************/
 void Bullet::drawLine(const Position& begin, const Position& end,
-                      double red, double green, double blue) const
+    double red, double green, double blue) const
 {
-   // Get ready...
-   glBegin(GL_LINES);
-   glColor3f((GLfloat)red, (GLfloat)green, (GLfloat)blue);
+    // Get ready...
+    glBegin(GL_LINES);
+    glColor3f((GLfloat)red, (GLfloat)green, (GLfloat)blue);
 
-   // Draw the actual line
-   glVertexPoint(begin);
-   glVertexPoint(end);
+    // Draw the actual line
+    glVertexPoint(begin);
+    glVertexPoint(end);
 
-   // Complete drawing
-   glColor3f((GLfloat)1.0 /* red % */, (GLfloat)1.0 /* green % */, (GLfloat)1.0 /* blue % */);
-   glEnd();
+    // Complete drawing
+    glColor3f((GLfloat)1.0 /* red % */, (GLfloat)1.0 /* green % */, (GLfloat)1.0 /* blue % */);
+    glEnd();
 }
 
 /************************************************************************
@@ -165,22 +165,22 @@ void Bullet::drawLine(const Position& begin, const Position& end,
  * Draw a single point (square actually on the screen, r pixels by r pixels
  *************************************************************************/
 void Bullet::drawDot(const Position& point, double radius,
-                     double red, double green, double blue) const
+    double red, double green, double blue) const
 {
-   // Get ready, get set...
-   glBegin(GL_TRIANGLE_FAN);
-   glColor3f((GLfloat)red, (GLfloat)green, (GLfloat)blue);
-   double r = radius / 2.0;
+    // Get ready, get set...
+    glBegin(GL_TRIANGLE_FAN);
+    glColor3f((GLfloat)red, (GLfloat)green, (GLfloat)blue);
+    double r = radius / 2.0;
 
-   // Go...
-   glVertex2f((GLfloat)(point.getX() - r), (GLfloat)(point.getY() - r));
-   glVertex2f((GLfloat)(point.getX() + r), (GLfloat)(point.getY() - r));
-   glVertex2f((GLfloat)(point.getX() + r), (GLfloat)(point.getY() + r));
-   glVertex2f((GLfloat)(point.getX() - r), (GLfloat)(point.getY() + r));
+    // Go...
+    glVertex2f((GLfloat)(point.getX() - r), (GLfloat)(point.getY() - r));
+    glVertex2f((GLfloat)(point.getX() + r), (GLfloat)(point.getY() - r));
+    glVertex2f((GLfloat)(point.getX() + r), (GLfloat)(point.getY() + r));
+    glVertex2f((GLfloat)(point.getX() - r), (GLfloat)(point.getY() + r));
 
-   // Done!  OK, that was a bit too dramatic
-   glColor3f((GLfloat)1.0 /* red % */, (GLfloat)1.0 /* green % */, (GLfloat)1.0 /* blue % */);
-   glEnd();
+    // Done!  OK, that was a bit too dramatic
+    glColor3f((GLfloat)1.0 /* red % */, (GLfloat)1.0 /* green % */, (GLfloat)1.0 /* blue % */);
+    glEnd();
 }
 
 /*********************************************
@@ -189,8 +189,8 @@ void Bullet::drawDot(const Position& point, double radius,
  *********************************************/
 void Pellet::output()
 {
-   if (!isDead())
-      drawDot(pt, 3.0, 1.0, 1.0, 0.0);
+    if (!isDead())
+        drawDot(pt, 3.0, 1.0, 1.0, 0.0);
 }
 
 /*********************************************
@@ -199,14 +199,14 @@ void Pellet::output()
  *********************************************/
 void Bomb::output()
 {
-   if (!isDead())
-   {
-       // Bomb actually has a gradient to cut out the harsh edges
-       drawDot(pt, radius + 2.0, 0.50, 0.50, 0.00);
-       drawDot(pt, radius + 1.0, 0.75, 0.75, 0.00);
-       drawDot(pt, radius + 0.0, 0.87, 0.87, 0.00);
-       drawDot(pt, radius - 1.0, 1.00, 1.00, 0.00);
-   }
+    if (!isDead())
+    {
+        // Bomb actually has a gradient to cut out the harsh edges
+        drawDot(pt, radius + 2.0, 0.50, 0.50, 0.00);
+        drawDot(pt, radius + 1.0, 0.75, 0.75, 0.00);
+        drawDot(pt, radius + 0.0, 0.87, 0.87, 0.00);
+        drawDot(pt, radius - 1.0, 1.00, 1.00, 0.00);
+    }
 }
 
 /*********************************************
@@ -216,7 +216,7 @@ void Bomb::output()
 void Shrapnel::output()
 {
     if (!isDead())
-       drawDot(pt, radius, 1.0, 1.0, 0.0);
+        drawDot(pt, radius, 1.0, 1.0, 0.0);
 }
 
 /*********************************************

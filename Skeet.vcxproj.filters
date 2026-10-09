@@ -12,6 +12,7 @@
     <ClCompile Include="skeet.cpp" />
     <ClCompile Include="time.cpp" />
     <ClCompile Include="uiInteract.cpp" />
+    <ClCompile Include="advance.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bullet.h" />
@@ -35,6 +36,7 @@
     <ClInclude Include="testBird.h" />
     <ClInclude Include="testPoints.h" />
     <ClInclude Include="testSkeet.h" />
+    <ClInclude Include="advance.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="scripts\insertBulletDimensions.ps1" />
