@@ -12,6 +12,8 @@
     <ClCompile Include="skeet.cpp" />
     <ClCompile Include="time.cpp" />
     <ClCompile Include="uiInteract.cpp" />
+    <ClCompile Include="mediator.cpp" />
+    <ClCompile Include="colleague.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bullet.h" />
@@ -35,6 +37,8 @@
     <ClInclude Include="testBird.h" />
     <ClInclude Include="testPoints.h" />
     <ClInclude Include="testSkeet.h" />
+    <ClInclude Include="mediator.h" />
+    <ClInclude Include="colleague.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="scripts\insertBulletDimensions.ps1" />
