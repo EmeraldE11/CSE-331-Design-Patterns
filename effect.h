@@ -26,7 +26,7 @@ protected:
 public:
     // create a fragment based on the velocity and position of the bullet
     Effect(const Position & pt) : pt(pt), age(0.5) {}
-
+    
     // Overriden Pure Virtual Method
     void accept(Visitor& visitor) override;
     
