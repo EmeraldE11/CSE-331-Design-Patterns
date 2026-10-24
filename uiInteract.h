@@ -31,21 +31,22 @@ class UserInput
    // Allow unit tests direct access to private members for deterministic testing.
    // TestSkeet will be a friend so tests can explicitly set the static state.
    friend class TestSkeet;
+   friend class TestHandler;
 
 public:
    // Default constructor useful for setting up the random variables
    // or for opening the file for output
-   UserInput() {  }
+   UserInput() {}
 
    // Constructor if you want to set up the window with anything but
    // the default parameters
-   UserInput(int argc, char ** argv, const char * title, const Position & dimensions)
+   UserInput(int argc, char** argv, const char* title, const Position& dimensions)
    {
       initialize(argc, argv, title, dimensions);
    }
 
    // This will set the game in motion
-   void run(void (*callBack)(const UserInput *, void *), void *p);
+   void run(void (*callBack)(const UserInput*, void*), void* p);
 
    // Is it time to redraw the screen
    bool isTimeToDraw();
@@ -58,30 +59,30 @@ public:
 
    // How many frames per second are we configured for?
    void setFramesPerSecond(double value);
-   
+
    // Key event indicating a key has been pressed or not.  The callbacks
    // should be the only onces to call this
    void keyEvent(int key, bool fDown);
    void keyEvent();
 
    // Current frame rate
-   double frameRate() const { return timePeriod;   }
-   
+   double frameRate() const { return timePeriod; }
+
    // Get various key events
-   int  isDown()      const { return isDownPress;  }
-   int  isUp()        const { return isUpPress;    }
-   int  isLeft()      const { return isLeftPress;  }
+   int  isDown()      const { return isDownPress; }
+   int  isUp()        const { return isUpPress; }
+   int  isLeft()      const { return isLeftPress; }
    int  isRight()     const { return isRightPress; }
    bool isSpace()     const { return isSpacePress; }
-   bool isM()         const { return isMPress;     }
-   bool isB()         const { return isBPress;     }
+   bool isM()         const { return isMPress; }
+   bool isB()         const { return isBPress; }
    bool isShift()     const { return isShiftPress; }
 
-   static void *p;                   // for client
-   static void (*callBack)(const UserInput *, void *);
+   static void* p;                   // for client
+   static void (*callBack)(const UserInput*, void*);
 
 private:
-   void initialize(int argc, char ** argv, const char * title, const Position & dimensions);
+   void initialize(int argc, char** argv, const char* title, const Position& dimensions);
 
    static bool         initialized;  // only run the constructor once!
    static double       timePeriod;   // interval between frame draws

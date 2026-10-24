@@ -24,6 +24,7 @@
     <ClCompile Include="effect.cpp" />
     <ClCompile Include="game.cpp" />
     <ClCompile Include="gun.cpp" />
+    <ClCompile Include="handler.cpp" />
     <ClCompile Include="points.cpp" />
     <ClCompile Include="position.cpp" />
     <ClCompile Include="score.cpp" />
@@ -36,6 +37,7 @@
     <ClInclude Include="bird.h" />
     <ClInclude Include="effect.h" />
     <ClInclude Include="gun.h" />
+    <ClInclude Include="handler.h" />
     <ClInclude Include="points.h" />
     <ClInclude Include="position.h" />
     <ClInclude Include="random.h" />
@@ -46,6 +48,7 @@
     <ClInclude Include="testBullet.h" />
     <ClInclude Include="testEffect.h" />
     <ClInclude Include="testGun.h" />
+    <ClInclude Include="testHandler.h" />
     <ClInclude Include="testPoints.h" />
     <ClInclude Include="testPosition.h" />
     <ClInclude Include="testSkeet.h" />
@@ -68,26 +71,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v145</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>

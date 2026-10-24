@@ -10,17 +10,17 @@
 #pragma once
 #include <string>
 
-/**********************
- * STATUS
- * How well the player is doing
- **********************/
+ /**********************
+  * STATUS
+  * How well the player is doing
+  **********************/
 class Status
 {
 public:
-    Status() {}
-    virtual std::string getText() const = 0;
-    virtual void adjust(int value) = 0;
-    virtual void reset() = 0;
+   Status() {}
+   virtual std::string getText() const = 0;
+   virtual void adjust(int value) = 0;
+   virtual void reset() = 0;
 };
 
 /**********************
@@ -29,16 +29,17 @@ public:
  **********************/
 class Score : public Status
 {
-    // allow TestSkeet direct access for unit testing
-    friend class TestSkeet;
+   // allow TestSkeet direct access for unit testing
+   friend class TestSkeet;
+   friend class TestHandler;
 
 public:
-    Score() { reset(); }
-    std::string getText() const;
-    void adjust(int value) { points += value; }
-    void reset() { points = 0; }
+   Score() { reset(); }
+   std::string getText() const;
+   void adjust(int value) { points += value; }
+   void reset() { points = 0; }
 private:
-    int points;
+   int points;
 };
 
 /**********************
@@ -47,15 +48,16 @@ private:
  **********************/
 class HitRatio : public Status
 {
-    // allow TestSkeet direct access for unit testing
-    friend class TestSkeet;
+   // allow TestSkeet direct access for unit testing
+   friend class TestSkeet;
+   friend class TestHandler;
 
 public:
-    HitRatio()  { reset(); }
-    std::string getText() const;
-    void adjust(int value);
-    void reset() { numKilled = numMissed = 0; }
+   HitRatio() { reset(); }
+   std::string getText() const;
+   void adjust(int value);
+   void reset() { numKilled = numMissed = 0; }
 private:
-    int numKilled;
-    int numMissed;
+   int numKilled;
+   int numMissed;
 };

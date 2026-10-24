@@ -17,6 +17,7 @@
 #include "testBird.h"
 #include "testPoints.h"
 #include "testSkeet.h"
+#include "testHandler.h"
 #include "random.h"
 
  /**********************
@@ -34,6 +35,7 @@ inline void testRunner()
    TestBird().run();
    TestPoints().run();
    TestSkeet().run();
+   TestHandler().run();
 
    // reset the random number generators
    randomInt(0, 1, true);
