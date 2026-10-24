@@ -19,6 +19,7 @@
 #include "score.h"
 #include "points.h"
 
+#include "colleague.h"
 #include <list>
 
 /*************************************************************************
@@ -32,7 +33,10 @@ class Skeet
 
 public:
     Skeet(Position & dimensions) : dimensions(dimensions),
-        gun(Position(800.0, 0.0)), time(), score(), hitRatio(), bullseye(false) {}
+        gun(Position(800.0, 0.0)), time(), score(), hitRatio(), mediator(),
+        birdColleague(mediator), bulletColleague(mediator),
+        scoreColleague(mediator, &score), hitRatioColleague(mediator, &hitRatio),
+        bullseye(false) {}
 
     // handle all user input
     void interact(const UserInput& ui);
@@ -63,6 +67,11 @@ private:
     Time time;                     // how many frames have transpired since the beginning
     Score score;                   // the player's score
     HitRatio hitRatio;             // the hit ratio for the birds
+    Mediator mediator;
+    BirdColleague birdColleague;
+    BulletColleague bulletColleague;
+    ScoreColleague scoreColleague;
+    HitRatioColleague hitRatioColleague;
     Position dimensions;           // size of the screen
     bool bullseye;
 };

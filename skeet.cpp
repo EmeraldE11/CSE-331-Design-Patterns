@@ -58,7 +58,8 @@ void Skeet::animate()
    for (auto & element : birds)
    {
       element->advance();
-      hitRatio.adjust(element->isDead() ? -1 : 0);
+      if (element->isDead())
+         birdColleague.wentOutOfBounds();
    }
    for (auto & bullet : bullets)
       bullet->move(effects);
@@ -79,7 +80,7 @@ void Skeet::animate()
                effects.push_back(new Fragment(bullet->getPosition(), bullet->getVelocity()));
             element->kill();
             bullet->kill();
-            hitRatio.adjust(1);
+            birdColleague.wasShot();
             bullet->setValue(-(element->getPoints()));
             element->setPoints(0);
          }
@@ -90,7 +91,7 @@ void Skeet::animate()
       {
          if ((*it)->getPoints())
             points.push_back(Points((*it)->getPosition(), (*it)->getPoints()));
-         score.adjust((*it)->getPoints());
+         birdColleague.removed(**it);
          it = birds.erase(it);
       }
       else
@@ -103,7 +104,7 @@ void Skeet::animate()
          (*it)->death(bullets);
          int value = -(*it)->getValue();
          points.push_back(Points((*it)->getPosition(), value));
-         score.adjust(value);
+         bulletColleague.removed(**it);
          it = bullets.erase(it);
       }
       else
@@ -385,7 +386,10 @@ void Skeet::interact(const UserInput & ui)
 
    // add something if something has been added
    if (nullptr != p)
+   {
       bullets.push_back(p);
+      bulletColleague.firedBullet(*p);
+   }
    
    // send movement information to all the bullets. Only the missile cares.
    for (auto bullet : bullets)

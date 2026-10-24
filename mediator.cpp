@@ -1,11 +1,14 @@
 #include "mediator.h"
+#include <algorithm>
+#include "colleague.h"
 
 /*
 *   MEDIATOR ENROLL FUNCTION
 */
 void Mediator::enroll(AbstractColleague* colleague)
 {
-	colleagues.push_back(colleague);
+	if (colleague != nullptr && find(colleagues.begin(), colleagues.end(), colleague) == colleagues.end())
+		colleagues.push_back(colleague);
 }
 
 /*
@@ -13,7 +16,7 @@ void Mediator::enroll(AbstractColleague* colleague)
 */
 void Mediator::unenroll(AbstractColleague* colleague)
 {
-	auto it = std::find(colleagues.begin(), colleagues.end(), colleague);
+	auto it = find(colleagues.begin(), colleagues.end(), colleague);
 	if (it != colleagues.end())
 		colleagues.erase(it);
 }
@@ -23,6 +26,6 @@ void Mediator::unenroll(AbstractColleague* colleague)
 */
 void Mediator::notify(const Message& message)
 {
-	for (auto colleague : colleagues)
+	for (AbstractColleague* colleague : colleagues)
 		colleague->notify(message);
 }

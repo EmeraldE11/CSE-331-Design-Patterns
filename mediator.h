@@ -6,7 +6,8 @@ using namespace std;
 enum class MessageType
 {
 	BIRD_DIED,
-	BULLET_FIRED
+	BULLET_FIRED,
+	SCORE_CHANGED
 };
 
 // How messages are sent
