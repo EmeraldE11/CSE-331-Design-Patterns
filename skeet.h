@@ -69,20 +69,33 @@ private:
       double redBack, double greenBack, double blueBack) const;
    void drawBullseye(double angle) const;
 
-   // build the chain of responsibility for the given level
+   // translate the keyboard into a request. This is the only place
+   // that knows which key means which action.
+   static Request makeRequest(const UserInput& ui);
+
+   // build the chain of responsibility for the given level. This is the
+   // only place that knows which actions are allowed in which level.
    void setLevel(int level);
 
-   // used by the handlers
+   // the actions the handlers can take on the game
+   void restart()
+   {
+      time.reset();
+      score.reset();
+      hitRatio.reset();
+   }
    void moveGun(int clockwise, int counterclockwise)
    {
       gun.interact(clockwise, counterclockwise);
    }
-   void moveMissile(bool isUp, bool isDown, bool isB)
+   void moveMissile(int clockwise, int counterclockwise)
    {
       // send movement information to all the bullets. Only the missile cares.
       for (auto bullet : bullets)
-         bullet->input(isUp, isDown, isB);
+         bullet->input(clockwise != 0, counterclockwise != 0, false);
    }
+   void addBullet(Bullet* p) { bullets.push_back(p); }
+   double getGunAngle() const { return gun.getAngle(); }
 
    Gun gun;                       // the gun
    std::list<Bird*> birds;        // all the shootable birds

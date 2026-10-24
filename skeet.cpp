@@ -365,10 +365,38 @@ void Skeet::interact(const UserInput& ui)
    // the bullseye is shown whenever shift is held
    bullseye = ui.isShift();
 
-   // pass the input down the chain until a handler consumes it
+   // pass the request down the chain until a handler consumes it
+   Request request = makeRequest(ui);
    for (auto& handler : handlers)
-      if (handler->handleRequest(ui, *this))
+      if (handler->handleRequest(request, *this))
          break;
+}
+
+/************************
+ * SKEET MAKE REQUEST
+ * Translate the keyboard into a request. Space restarts the game
+ * or fires a pellet, M fires a missile, and B fires a bomb. Only one
+ * bullet can be fired per frame: a pellet first, then a missile,
+ * then a bomb. Up and right turn clockwise, down and left turn
+ * counterclockwise.
+ ************************/
+Request Skeet::makeRequest(const UserInput& ui)
+{
+   Request request;
+
+   request.restart = ui.isSpace();
+
+   if (ui.isSpace())
+      request.fire = BulletType::PELLET;
+   else if (ui.isM())
+      request.fire = BulletType::MISSILE;
+   else if (ui.isB())
+      request.fire = BulletType::BOMB;
+
+   request.clockwise = ui.isUp() + ui.isRight();
+   request.counterclockwise = ui.isDown() + ui.isLeft();
+
+   return request;
 }
 
 /************************

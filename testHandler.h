@@ -4,8 +4,9 @@
  * Author:
  *    Br. Helfrich
  * Summary:
- *    Unit tests for each concrete handler and for the way the Skeet
- *    class builds and walks the chain of responsibility.
+ *    Unit tests for each concrete handler, for the way Skeet translates
+ *    the keyboard into a Request, and for the way Skeet builds and walks
+ *    the chain of responsibility.
  ************************************************************************/
 
 #pragma once
@@ -17,10 +18,10 @@
 #include "uiInteract.h"
 #include <typeinfo>
 
-/**********************
- * TEST HANDLER
- * Unit test the handlers in the chain of responsibility
- **********************/
+ /**********************
+  * TEST HANDLER
+  * Unit test the handlers in the chain of responsibility
+  **********************/
 class TestHandler : public UnitTest
 {
 public:
@@ -29,30 +30,39 @@ public:
       reset();
 
       // game over
-      test_gameOver_space();
-      test_gameOver_noSpace();
+      test_gameOver_restart();
+      test_gameOver_noRestart();
 
       // move gun
-      test_moveGun_up();
-      test_moveGun_rightLeft();
-      test_moveGun_spaceAlsoPressed();
+      test_moveGun_clockwise();
+      test_moveGun_counterclockwise();
+      test_moveGun_ignoresFire();
 
       // guide missile
-      test_guideMissile_up();
+      test_guideMissile_clockwise();
       test_guideMissile_none();
 
       // pellet
-      test_pellet_space();
-      test_pellet_noSpace();
+      test_pellet_pellet();
+      test_pellet_otherTypes();
 
       // missile
-      test_missile_m();
-      test_missile_mWithUp();
-      test_missile_noM();
+      test_missile_missile();
+      test_missile_missileWhileTurning();
+      test_missile_otherTypes();
 
       // bomb
-      test_bomb_b();
-      test_bomb_noB();
+      test_bomb_bomb();
+      test_bomb_otherTypes();
+
+      // translating the keyboard into a request
+      test_makeRequest_nothing();
+      test_makeRequest_space();
+      test_makeRequest_m();
+      test_makeRequest_b();
+      test_makeRequest_allFireKeys();
+      test_makeRequest_mAndB();
+      test_makeRequest_turning();
 
       // building the chain
       test_setLevel_level0();
@@ -78,8 +88,19 @@ public:
 
 private:
    /*****************************************************************
-    * Helpers to set the keyboard state and put it back afterwards
+    * Helpers to build requests, set the keyboard, and set the time
     *****************************************************************/
+   Request buildRequest(BulletType fire = BulletType::NONE, bool restart = false,
+      int clockwise = 0, int counterclockwise = 0)
+   {
+      Request request;
+      request.fire = fire;
+      request.restart = restart;
+      request.clockwise = clockwise;
+      request.counterclockwise = counterclockwise;
+      return request;
+   }
+
    bool   ui_initialized;
    double ui_timePeriod;
    unsigned long ui_nextTick;
@@ -93,59 +114,59 @@ private:
    bool   ui_isShiftPress;
 
    void pressKeys(int up = 0, int down = 0, int left = 0, int right = 0,
-                  bool space = false, bool m = false, bool b = false,
-                  bool shift = false)
+      bool space = false, bool m = false, bool b = false,
+      bool shift = false)
    {
       // remember the old values
-      ui_initialized  = UserInput::initialized;
-      ui_timePeriod   = UserInput::timePeriod;
-      ui_nextTick     = UserInput::nextTick;
-      ui_isDownPress  = UserInput::isDownPress;
-      ui_isUpPress    = UserInput::isUpPress;
-      ui_isLeftPress  = UserInput::isLeftPress;
+      ui_initialized = UserInput::initialized;
+      ui_timePeriod = UserInput::timePeriod;
+      ui_nextTick = UserInput::nextTick;
+      ui_isDownPress = UserInput::isDownPress;
+      ui_isUpPress = UserInput::isUpPress;
+      ui_isLeftPress = UserInput::isLeftPress;
       ui_isRightPress = UserInput::isRightPress;
       ui_isSpacePress = UserInput::isSpacePress;
-      ui_isBPress     = UserInput::isBPress;
-      ui_isMPress     = UserInput::isMPress;
+      ui_isBPress = UserInput::isBPress;
+      ui_isMPress = UserInput::isMPress;
       ui_isShiftPress = UserInput::isShiftPress;
 
       // prevent UserInput::initialize() from running and set the keys
-      UserInput::initialized  = true;
-      UserInput::timePeriod   = 0.0;
-      UserInput::nextTick     = 0;
-      UserInput::isUpPress    = up;
-      UserInput::isDownPress  = down;
-      UserInput::isLeftPress  = left;
+      UserInput::initialized = true;
+      UserInput::timePeriod = 0.0;
+      UserInput::nextTick = 0;
+      UserInput::isUpPress = up;
+      UserInput::isDownPress = down;
+      UserInput::isLeftPress = left;
       UserInput::isRightPress = right;
       UserInput::isSpacePress = space;
-      UserInput::isMPress     = m;
-      UserInput::isBPress     = b;
+      UserInput::isMPress = m;
+      UserInput::isBPress = b;
       UserInput::isShiftPress = shift;
    }
 
    void restoreKeys()
    {
-      UserInput::initialized  = ui_initialized;
-      UserInput::timePeriod   = ui_timePeriod;
-      UserInput::nextTick     = ui_nextTick;
-      UserInput::isDownPress  = ui_isDownPress;
-      UserInput::isUpPress    = ui_isUpPress;
-      UserInput::isLeftPress  = ui_isLeftPress;
+      UserInput::initialized = ui_initialized;
+      UserInput::timePeriod = ui_timePeriod;
+      UserInput::nextTick = ui_nextTick;
+      UserInput::isDownPress = ui_isDownPress;
+      UserInput::isUpPress = ui_isUpPress;
+      UserInput::isLeftPress = ui_isLeftPress;
       UserInput::isRightPress = ui_isRightPress;
       UserInput::isSpacePress = ui_isSpacePress;
-      UserInput::isBPress     = ui_isBPress;
-      UserInput::isMPress     = ui_isMPress;
+      UserInput::isBPress = ui_isBPress;
+      UserInput::isMPress = ui_isMPress;
       UserInput::isShiftPress = ui_isShiftPress;
    }
 
    // set the game to a given level in the middle of playing time
-   void setTime(Skeet & s, int level)
+   void setTime(Skeet& s, int level)
    {
       s.time.levelNumber = level;
       s.time.framesLeft = (level == 0) ? 0 : FRAMES_PER_SECOND * 15;
    }
 
-   void deleteBullets(Skeet & s)
+   void deleteBullets(Skeet& s)
    {
       for (auto p : s.bullets)
          delete p;
@@ -156,8 +177,8 @@ private:
     * GAME OVER
     *****************************************************************/
 
-   // space during game over resets the time, score, and hit ratio
-   void test_gameOver_space()
+    // a restart request resets the time, score, and hit ratio
+   void test_gameOver_restart()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
@@ -166,12 +187,11 @@ private:
       s.score.points = 42;
       s.hitRatio.numKilled = 3;
       s.hitRatio.numMissed = 4;
-      pressKeys(0, 0, 0, 0, true /*space*/);
-      UserInput ui;
+      Request request = buildRequest(BulletType::PELLET, true /*restart*/);
       HandlerGameOver handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool result = handler.handleRequest(request, s);
 
       // VERIFY
       assertUnit(result == true);
@@ -180,139 +200,109 @@ private:
       assertUnit(s.score.points == 0);
       assertUnit(s.hitRatio.numKilled == 0);
       assertUnit(s.hitRatio.numMissed == 0);
-
-      // TEARDOWN
-      restoreKeys();
+      assertUnit(s.bullets.empty());
    }
 
-   // without space nothing happens and the chain continues
-   void test_gameOver_noSpace()
+   // without a restart request nothing happens and the chain continues
+   void test_gameOver_noRestart()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
       setTime(s, 0);
       s.score.points = 42;
-      pressKeys(1 /*up*/, 0, 0, 0, false, true /*m*/, true /*b*/);
-      UserInput ui;
+      Request request = buildRequest(BulletType::MISSILE, false, 1 /*cw*/);
       HandlerGameOver handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool result = handler.handleRequest(request, s);
 
       // VERIFY
       assertUnit(result == false);
       assertUnit(s.time.levelNumber == 0);
       assertUnit(s.score.points == 42);
-
-      // TEARDOWN
-      restoreKeys();
    }
 
    /*****************************************************************
     * MOVE GUN
     *****************************************************************/
 
-   // up turns the gun and lets the chain continue
-   void test_moveGun_up()
+    // turning clockwise raises the gun and lets the chain continue
+   void test_moveGun_clockwise()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 1);
       s.gun.angle = 0.30;
-      pressKeys(1 /*up*/);
-      UserInput ui;
+      Request request = buildRequest(BulletType::NONE, false, 1 /*cw*/, 0);
       HandlerMoveGun handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool result = handler.handleRequest(request, s);
 
       // VERIFY
       assertUnit(result == false);
       assertEquals(0.325, s.gun.angle);
       assertUnit(s.bullets.empty());
-
-      // TEARDOWN
-      restoreKeys();
    }
 
-   // right turns the same way as up, left the same way as down
-   void test_moveGun_rightLeft()
+   // turning counterclockwise lowers the gun
+   void test_moveGun_counterclockwise()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 1);
       s.gun.angle = 0.30;
-      pressKeys(0, 0, 0, 1 /*right*/);
-      UserInput uiRight;
+      Request request = buildRequest(BulletType::NONE, false, 0, 1 /*ccw*/);
       HandlerMoveGun handler;
 
       // EXERCISE
-      bool resultRight = handler.handleRequest(uiRight, s);
-      double angleAfterRight = s.gun.angle;
-      restoreKeys();
-      pressKeys(0, 0, 1 /*left*/, 0);
-      UserInput uiLeft;
-      bool resultLeft = handler.handleRequest(uiLeft, s);
+      bool result = handler.handleRequest(request, s);
 
       // VERIFY
-      assertUnit(resultRight == false);
-      assertUnit(resultLeft == false);
-      assertEquals(0.325, angleAfterRight);
-      assertEquals(0.30, s.gun.angle);
-
-      // TEARDOWN
-      restoreKeys();
+      assertUnit(result == false);
+      assertEquals(0.275, s.gun.angle);
    }
 
-   // the gun handler ignores the fire keys
-   void test_moveGun_spaceAlsoPressed()
+   // the gun handler does not fire anything
+   void test_moveGun_ignoresFire()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 4);
       s.gun.angle = 0.30;
-      pressKeys(0, 1 /*down*/, 0, 0, true /*space*/, true /*m*/, true /*b*/);
-      UserInput ui;
+      Request request = buildRequest(BulletType::BOMB, true, 0, 1 /*ccw*/);
       HandlerMoveGun handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool result = handler.handleRequest(request, s);
 
       // VERIFY
       assertUnit(result == false);
       assertEquals(0.275, s.gun.angle);
       assertUnit(s.bullets.empty());
-
-      // TEARDOWN
-      restoreKeys();
    }
 
    /*****************************************************************
     * GUIDE MISSILE
     *****************************************************************/
 
-   // up steers the missiles in flight and lets the chain continue
-   void test_guideMissile_up()
+    // turning steers the missiles in flight and lets the chain continue
+   void test_guideMissile_clockwise()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 2);
       s.bullets.push_back(new Missile(0.2));
       s.bullets.push_back(new Pellet(0.2));
       Missile expectedMissile(0.2);
       expectedMissile.input(true, false, false);
       Pellet expectedPellet(0.2);
-      pressKeys(1 /*up*/);
-      UserInput ui;
+      Request request = buildRequest(BulletType::NONE, false, 1 /*cw*/, 0);
       HandlerGuideMissile handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool result = handler.handleRequest(request, s);
 
       // VERIFY
       assertUnit(result == false);
@@ -323,25 +313,22 @@ private:
       assertEquals(expectedPellet.getVelocity().getDy(), s.bullets.back()->getVelocity().getDy());
 
       // TEARDOWN
-      restoreKeys();
       deleteBullets(s);
    }
 
-   // with no arrow keys the missiles fly straight
+   // with no turning the missiles fly straight
    void test_guideMissile_none()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 2);
       s.bullets.push_back(new Missile(0.2));
       Missile expected(0.2);
-      pressKeys();
-      UserInput ui;
+      Request request = buildRequest();
       HandlerGuideMissile handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool result = handler.handleRequest(request, s);
 
       // VERIFY
       assertUnit(result == false);
@@ -349,7 +336,6 @@ private:
       assertEquals(expected.getVelocity().getDy(), s.bullets.front()->getVelocity().getDy());
 
       // TEARDOWN
-      restoreKeys();
       deleteBullets(s);
    }
 
@@ -357,21 +343,19 @@ private:
     * PELLET
     *****************************************************************/
 
-   // space fires a pellet along the gun and stops the chain
-   void test_pellet_space()
+    // a pellet request fires a pellet along the gun and stops the chain
+   void test_pellet_pellet()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 1);
       s.gun.angle = 0.30;
       Pellet expected(0.30);
-      pressKeys(0, 0, 0, 0, true /*space*/);
-      UserInput ui;
+      Request request = buildRequest(BulletType::PELLET);
       HandlerPellet handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool result = handler.handleRequest(request, s);
 
       // VERIFY
       assertUnit(result == true);
@@ -381,51 +365,46 @@ private:
       assertEquals(expected.getVelocity().getDy(), s.bullets.front()->getVelocity().getDy());
 
       // TEARDOWN
-      restoreKeys();
       deleteBullets(s);
    }
 
-   // no space, no pellet
-   void test_pellet_noSpace()
+   // the pellet handler ignores every other request
+   void test_pellet_otherTypes()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 4);
-      pressKeys(0, 0, 0, 0, false, true /*m*/, true /*b*/);
-      UserInput ui;
       HandlerPellet handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool resultNone = handler.handleRequest(buildRequest(BulletType::NONE), s);
+      bool resultMissile = handler.handleRequest(buildRequest(BulletType::MISSILE), s);
+      bool resultBomb = handler.handleRequest(buildRequest(BulletType::BOMB), s);
 
       // VERIFY
-      assertUnit(result == false);
+      assertUnit(resultNone == false);
+      assertUnit(resultMissile == false);
+      assertUnit(resultBomb == false);
       assertUnit(s.bullets.empty());
-
-      // TEARDOWN
-      restoreKeys();
    }
 
    /*****************************************************************
     * MISSILE
     *****************************************************************/
 
-   // M fires a missile along the gun and stops the chain
-   void test_missile_m()
+    // a missile request fires a missile along the gun and stops the chain
+   void test_missile_missile()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 2);
       s.gun.angle = 0.30;
       Missile expected(0.30);
-      pressKeys(0, 0, 0, 0, false, true /*m*/);
-      UserInput ui;
+      Request request = buildRequest(BulletType::MISSILE);
       HandlerMissile handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool result = handler.handleRequest(request, s);
 
       // VERIFY
       assertUnit(result == true);
@@ -435,26 +414,23 @@ private:
       assertEquals(expected.getVelocity().getDy(), s.bullets.front()->getVelocity().getDy());
 
       // TEARDOWN
-      restoreKeys();
       deleteBullets(s);
    }
 
-   // a missile fired while up is held gets steered on its first frame
-   void test_missile_mWithUp()
+   // a missile fired while turning gets steered on its first frame
+   void test_missile_missileWhileTurning()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 2);
       s.gun.angle = 0.30;
       Missile expected(0.30);
       expected.input(true, false, false);
-      pressKeys(1 /*up*/, 0, 0, 0, false, true /*m*/);
-      UserInput ui;
+      Request request = buildRequest(BulletType::MISSILE, false, 1 /*cw*/, 0);
       HandlerMissile handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool result = handler.handleRequest(request, s);
 
       // VERIFY
       assertUnit(result == true);
@@ -463,51 +439,46 @@ private:
       assertEquals(expected.getVelocity().getDy(), s.bullets.front()->getVelocity().getDy());
 
       // TEARDOWN
-      restoreKeys();
       deleteBullets(s);
    }
 
-   // no M, no missile
-   void test_missile_noM()
+   // the missile handler ignores every other request
+   void test_missile_otherTypes()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 4);
-      pressKeys(1 /*up*/, 0, 0, 0, false, false, true /*b*/);
-      UserInput ui;
       HandlerMissile handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool resultNone = handler.handleRequest(buildRequest(BulletType::NONE), s);
+      bool resultPellet = handler.handleRequest(buildRequest(BulletType::PELLET), s);
+      bool resultBomb = handler.handleRequest(buildRequest(BulletType::BOMB), s);
 
       // VERIFY
-      assertUnit(result == false);
+      assertUnit(resultNone == false);
+      assertUnit(resultPellet == false);
+      assertUnit(resultBomb == false);
       assertUnit(s.bullets.empty());
-
-      // TEARDOWN
-      restoreKeys();
    }
 
    /*****************************************************************
     * BOMB
     *****************************************************************/
 
-   // B fires a bomb along the gun and stops the chain
-   void test_bomb_b()
+    // a bomb request fires a bomb along the gun and stops the chain
+   void test_bomb_bomb()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 3);
       s.gun.angle = 0.30;
       Bomb expected(0.30);
-      pressKeys(0, 0, 0, 0, false, false, true /*b*/);
-      UserInput ui;
+      Request request = buildRequest(BulletType::BOMB);
       HandlerBomb handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool result = handler.handleRequest(request, s);
 
       // VERIFY
       assertUnit(result == true);
@@ -517,27 +488,155 @@ private:
       assertEquals(expected.getVelocity().getDy(), s.bullets.front()->getVelocity().getDy());
 
       // TEARDOWN
-      restoreKeys();
       deleteBullets(s);
    }
 
-   // no B, no bomb
-   void test_bomb_noB()
+   // the bomb handler ignores every other request
+   void test_bomb_otherTypes()
    {
       // SETUP
       Position dimensions(800.0, 600.0);
       Skeet s(dimensions);
-      setTime(s, 4);
-      pressKeys(0, 0, 0, 0, false, true /*m*/);
-      UserInput ui;
       HandlerBomb handler;
 
       // EXERCISE
-      bool result = handler.handleRequest(ui, s);
+      bool resultNone = handler.handleRequest(buildRequest(BulletType::NONE), s);
+      bool resultPellet = handler.handleRequest(buildRequest(BulletType::PELLET), s);
+      bool resultMissile = handler.handleRequest(buildRequest(BulletType::MISSILE), s);
 
       // VERIFY
-      assertUnit(result == false);
+      assertUnit(resultNone == false);
+      assertUnit(resultPellet == false);
+      assertUnit(resultMissile == false);
       assertUnit(s.bullets.empty());
+   }
+
+   /*****************************************************************
+    * MAKE REQUEST
+    *****************************************************************/
+
+    // no keys, empty request
+   void test_makeRequest_nothing()
+   {
+      // SETUP
+      pressKeys();
+      UserInput ui;
+
+      // EXERCISE
+      Request request = Skeet::makeRequest(ui);
+
+      // VERIFY
+      assertUnit(request.restart == false);
+      assertUnit(request.fire == BulletType::NONE);
+      assertUnit(request.clockwise == 0);
+      assertUnit(request.counterclockwise == 0);
+
+      // TEARDOWN
+      restoreKeys();
+   }
+
+   // space means restart or pellet
+   void test_makeRequest_space()
+   {
+      // SETUP
+      pressKeys(0, 0, 0, 0, true /*space*/);
+      UserInput ui;
+
+      // EXERCISE
+      Request request = Skeet::makeRequest(ui);
+
+      // VERIFY
+      assertUnit(request.restart == true);
+      assertUnit(request.fire == BulletType::PELLET);
+
+      // TEARDOWN
+      restoreKeys();
+   }
+
+   // M means missile
+   void test_makeRequest_m()
+   {
+      // SETUP
+      pressKeys(0, 0, 0, 0, false, true /*m*/);
+      UserInput ui;
+
+      // EXERCISE
+      Request request = Skeet::makeRequest(ui);
+
+      // VERIFY
+      assertUnit(request.restart == false);
+      assertUnit(request.fire == BulletType::MISSILE);
+
+      // TEARDOWN
+      restoreKeys();
+   }
+
+   // B means bomb
+   void test_makeRequest_b()
+   {
+      // SETUP
+      pressKeys(0, 0, 0, 0, false, false, true /*b*/);
+      UserInput ui;
+
+      // EXERCISE
+      Request request = Skeet::makeRequest(ui);
+
+      // VERIFY
+      assertUnit(request.restart == false);
+      assertUnit(request.fire == BulletType::BOMB);
+
+      // TEARDOWN
+      restoreKeys();
+   }
+
+   // with every fire key held, a pellet wins
+   void test_makeRequest_allFireKeys()
+   {
+      // SETUP
+      pressKeys(0, 0, 0, 0, true /*space*/, true /*m*/, true /*b*/);
+      UserInput ui;
+
+      // EXERCISE
+      Request request = Skeet::makeRequest(ui);
+
+      // VERIFY
+      assertUnit(request.fire == BulletType::PELLET);
+
+      // TEARDOWN
+      restoreKeys();
+   }
+
+   // with M and B held, a missile wins
+   void test_makeRequest_mAndB()
+   {
+      // SETUP
+      pressKeys(0, 0, 0, 0, false, true /*m*/, true /*b*/);
+      UserInput ui;
+
+      // EXERCISE
+      Request request = Skeet::makeRequest(ui);
+
+      // VERIFY
+      assertUnit(request.fire == BulletType::MISSILE);
+
+      // TEARDOWN
+      restoreKeys();
+   }
+
+   // up and right add up to clockwise, down and left to counterclockwise
+   void test_makeRequest_turning()
+   {
+      // SETUP
+      pressKeys(3 /*up*/, 5 /*down*/, 7 /*left*/, 11 /*right*/);
+      UserInput ui;
+
+      // EXERCISE
+      Request request = Skeet::makeRequest(ui);
+
+      // VERIFY
+      assertUnit(request.clockwise == 14);
+      assertUnit(request.counterclockwise == 12);
+      assertUnit(request.fire == BulletType::NONE);
 
       // TEARDOWN
       restoreKeys();
@@ -547,12 +646,12 @@ private:
     * SET LEVEL
     *****************************************************************/
 
-   // is the handler at this index of the chain of the given type?
+    // is the handler at this index of the chain of the given type?
    template <class T>
-   bool isHandler(const Skeet & s, size_t index)
+   bool isHandler(const Skeet& s, size_t index)
    {
       return index < s.handlers.size() &&
-             typeid(*s.handlers[index]) == typeid(T);
+         typeid(*s.handlers[index]) == typeid(T);
    }
 
    // game over: restart, then the gun
@@ -670,7 +769,7 @@ private:
     * INTERACT
     *****************************************************************/
 
-   // a new Skeet has no chain until interact() is first called
+    // a new Skeet has no chain until interact() is first called
    void test_interact_buildsChainOnFirstCall()
    {
       // SETUP
@@ -840,7 +939,7 @@ private:
       // VERIFY
       assertUnit(s.time.levelNumber == 1);
       assertUnit(s.score.points == 0);
-      assertEquals(0.30, s.gun.angle);   // the restart consumed the input
+      assertEquals(0.30, s.gun.angle);   // the restart consumed the request
       assertUnit(s.bullets.empty());
 
       // TEARDOWN

@@ -9,20 +9,17 @@
 
 #include "handler.h"
 #include "skeet.h"
-#include "uiInteract.h"
 #include "bullet.h"
 
-/************************
- * HANDLER GAME OVER : HANDLE REQUEST
- * The space bar resets the game
- ************************/
-bool HandlerGameOver::handleRequest(const UserInput & ui, Skeet & skeet)
+ /************************
+  * HANDLER GAME OVER : HANDLE REQUEST
+  * Start a new game
+  ************************/
+bool HandlerGameOver::handleRequest(const Request& request, Skeet& skeet)
 {
-   if (ui.isSpace())
+   if (request.restart)
    {
-      skeet.time.reset();
-      skeet.score.reset();
-      skeet.hitRatio.reset();
+      skeet.restart();
       return true;
    }
    return false;
@@ -30,35 +27,35 @@ bool HandlerGameOver::handleRequest(const UserInput & ui, Skeet & skeet)
 
 /************************
  * HANDLER MOVE GUN : HANDLE REQUEST
- * Up and right turn the gun one way, down and left the other way.
- * Returns FALSE so the gun can move while something else happens.
+ * Turn the gun. Returns FALSE so the gun can move while
+ * something else happens.
  ************************/
-bool HandlerMoveGun::handleRequest(const UserInput & ui, Skeet & skeet)
+bool HandlerMoveGun::handleRequest(const Request& request, Skeet& skeet)
 {
-   skeet.moveGun(ui.isUp() + ui.isRight(), ui.isDown() + ui.isLeft());
+   skeet.moveGun(request.clockwise, request.counterclockwise);
    return false;
 }
 
 /************************
  * HANDLER GUIDE MISSILE : HANDLE REQUEST
- * Send the movement information to all the bullets. Only missiles care.
- * Returns FALSE so the missiles can be steered while something else happens.
+ * Steer the missiles in flight. Returns FALSE so the missiles
+ * can be steered while something else happens.
  ************************/
-bool HandlerGuideMissile::handleRequest(const UserInput & ui, Skeet & skeet)
+bool HandlerGuideMissile::handleRequest(const Request& request, Skeet& skeet)
 {
-   skeet.moveMissile(ui.isUp() + ui.isRight(), ui.isDown() + ui.isLeft(), ui.isB());
+   skeet.moveMissile(request.clockwise, request.counterclockwise);
    return false;
 }
 
 /************************
  * HANDLER PELLET : HANDLE REQUEST
- * The space bar fires a pellet
+ * Fire a pellet. This handler can only ever create a Pellet.
  ************************/
-bool HandlerPellet::handleRequest(const UserInput & ui, Skeet & skeet)
+bool HandlerPellet::handleRequest(const Request& request, Skeet& skeet)
 {
-   if (ui.isSpace())
+   if (request.fire == BulletType::PELLET)
    {
-      skeet.bullets.push_back(new Pellet(skeet.gun.getAngle()));
+      skeet.addBullet(new Pellet(skeet.getGunAngle()));
       return true;
    }
    return false;
@@ -66,18 +63,18 @@ bool HandlerPellet::handleRequest(const UserInput & ui, Skeet & skeet)
 
 /************************
  * HANDLER MISSILE : HANDLE REQUEST
- * The M key fires a missile
+ * Fire a missile. This handler can only ever create a Missile.
  ************************/
-bool HandlerMissile::handleRequest(const UserInput & ui, Skeet & skeet)
+bool HandlerMissile::handleRequest(const Request& request, Skeet& skeet)
 {
-   if (ui.isM())
+   if (request.fire == BulletType::MISSILE)
    {
-      Missile * p = new Missile(skeet.gun.getAngle());
-      skeet.bullets.push_back(p);
+      Missile* p = new Missile(skeet.getGunAngle());
+      skeet.addBullet(p);
 
       // HandlerGuideMissile already ran before this missile existed, so
       // give the new missile the same steering the others got this frame
-      p->input(ui.isUp() + ui.isRight(), ui.isDown() + ui.isLeft(), ui.isB());
+      p->input(request.clockwise != 0, request.counterclockwise != 0, false);
       return true;
    }
    return false;
@@ -85,13 +82,13 @@ bool HandlerMissile::handleRequest(const UserInput & ui, Skeet & skeet)
 
 /************************
  * HANDLER BOMB : HANDLE REQUEST
- * The B key fires a bomb
+ * Fire a bomb. This handler can only ever create a Bomb.
  ************************/
-bool HandlerBomb::handleRequest(const UserInput & ui, Skeet & skeet)
+bool HandlerBomb::handleRequest(const Request& request, Skeet& skeet)
 {
-   if (ui.isB())
+   if (request.fire == BulletType::BOMB)
    {
-      skeet.bullets.push_back(new Bomb(skeet.gun.getAngle()));
+      skeet.addBullet(new Bomb(skeet.getGunAngle()));
       return true;
    }
    return false;
