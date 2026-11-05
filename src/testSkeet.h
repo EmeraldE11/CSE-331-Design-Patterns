@@ -72,7 +72,7 @@ class TestSkeet : public UnitTest
 
          // Ensure Bird static dimensions are known for deterministic
          // construction
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // Set the time to level 1 (spawn logic for level 1)
          s.time.levelNumber = 1;
@@ -99,16 +99,20 @@ class TestSkeet : public UnitTest
             auto it = s.birds.begin();
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertUnit((*it)->dead == false);
-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
-            assertEquals(10, (*it)->points);
+            assertUnit((*it)->logic->storage.dead == false);
+            assertEqualsTolerance(
+               30.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(10, (*it)->logic->storage.points);
 
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertUnit((*it)->dead == false);
-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
-            assertEquals(10, (*it)->points);
+            assertUnit((*it)->logic->storage.dead == false);
+            assertEqualsTolerance(
+               30.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(10, (*it)->logic->storage.points);
          }
 
          // spawn() should not modify the time framesLeft
@@ -144,7 +148,7 @@ class TestSkeet : public UnitTest
          assert(s.points.empty() == true);
 
          // Ensure Bird static dimensions for deterministic construction
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // Set the time to level 2 (spawn logic for level 2)
          s.time.levelNumber = 2;
@@ -166,23 +170,29 @@ class TestSkeet : public UnitTest
             // first Standard
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
-            assertEquals(12, (*it)->points);
+            assertEqualsTolerance(
+               25.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(12, (*it)->logic->storage.points);
 
             // second Standard
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
-            assertEquals(12, (*it)->points);
+            assertEqualsTolerance(
+               25.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(12, (*it)->logic->storage.points);
 
             // Sinker
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
+            assertEqualsTolerance(
+               25.0, (*it)->logic->storage.radius, tolerance
+            );
             // level2 used default Sinker(points) -> default in bird.h is 20
-            assertEquals(20, (*it)->points);
+            assertEquals(20, (*it)->logic->storage.points);
          }
 
          // spawn() should not change time.framesLeft
@@ -213,7 +223,7 @@ class TestSkeet : public UnitTest
          assert(s.points.empty() == true);
 
          // Ensure Bird static dimensions for deterministic construction
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // Set the time to level 3 (spawn logic for level 3)
          s.time.levelNumber = 3;
@@ -236,29 +246,37 @@ class TestSkeet : public UnitTest
             // Standard #1
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            assertEquals(15, (*it)->points);
+            assertEqualsTolerance(
+               20.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(15, (*it)->logic->storage.points);
 
             // Standard #2
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            assertEquals(15, (*it)->points);
+            assertEqualsTolerance(
+               20.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(15, (*it)->logic->storage.points);
 
             // Sinker (explicit points 22 in spawn)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            assertEquals(22, (*it)->points);
+            assertEqualsTolerance(
+               20.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(22, (*it)->logic->storage.points);
 
             // Floater (default points)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            assertEquals(15, (*it)->points);
+            assertEqualsTolerance(
+               20.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(15, (*it)->logic->storage.points);
          }
 
          // spawn() should not change time.framesLeft
@@ -289,7 +307,7 @@ class TestSkeet : public UnitTest
          assert(s.points.empty() == true);
 
          // Ensure Bird static dimensions for deterministic construction
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // Set the time to level 4 (spawn logic for level 4)
          s.time.levelNumber = 4;
@@ -313,36 +331,46 @@ class TestSkeet : public UnitTest
             // Standard #1
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(18, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(18, (*it)->logic->storage.points);
 
             // Standard #2
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(18, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(18, (*it)->logic->storage.points);
 
             // Sinker (explicit points 25)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(25, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(25, (*it)->logic->storage.points);
 
             // Floater (explicit points 25)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(25, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(25, (*it)->logic->storage.points);
 
             // Crazy (default points 30)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Crazy));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(30, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(30, (*it)->logic->storage.points);
          }
 
          // spawn() should not change time.framesLeft
@@ -391,7 +419,7 @@ class TestSkeet : public UnitTest
          s.bullseye = true;
 
          // Ensure Bird static dimensions for deterministic construction
-         Bird::dimensions = s.dimensions;
+         BirdStorage::dimensions = s.dimensions;
 
          // EXERCISE
          s.animate();
@@ -411,16 +439,20 @@ class TestSkeet : public UnitTest
             auto it = s.birds.begin();
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertUnit((*it)->dead == false);
-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
-            assertEquals(10, (*it)->points);
+            assertUnit((*it)->logic->storage.dead == false);
+            assertEqualsTolerance(
+               30.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(10, (*it)->logic->storage.points);
 
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertUnit((*it)->dead == false);
-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
-            assertEquals(10, (*it)->points);
+            assertUnit((*it)->logic->storage.dead == false);
+            assertEqualsTolerance(
+               30.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(10, (*it)->logic->storage.points);
          }
 
          // Time should have advanced by one frame (framesLeft decremented)
@@ -477,7 +509,7 @@ class TestSkeet : public UnitTest
          s.bullseye = false;
 
          // Ensure Bird static dimensions for deterministic construction
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // Set the time to level 2 (spawn logic for level 2)
          s.time.levelNumber = 2;
@@ -501,23 +533,29 @@ class TestSkeet : public UnitTest
             // Standard #1
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
-            assertEquals(12, (*it)->points);
+            assertEqualsTolerance(
+               25.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(12, (*it)->logic->storage.points);
 
             // Standard #2
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
-            assertEquals(12, (*it)->points);
+            assertEqualsTolerance(
+               25.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(12, (*it)->logic->storage.points);
 
             // Sinker
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
+            assertEqualsTolerance(
+               25.0, (*it)->logic->storage.radius, tolerance
+            );
             // default Sinker points (bird.h default is 20)
-            assertEquals(20, (*it)->points);
+            assertEquals(20, (*it)->logic->storage.points);
          }
 
          // Time should have advanced by one frame (framesLeft decremented)
@@ -569,7 +607,7 @@ class TestSkeet : public UnitTest
          s.bullseye = true;
 
          // Ensure Bird static dimensions for deterministic construction
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // Set the time to level 3 (spawn logic for level 3)
          s.time.levelNumber = 3;
@@ -593,29 +631,37 @@ class TestSkeet : public UnitTest
             // Standard #1
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            assertEquals(15, (*it)->points);
+            assertEqualsTolerance(
+               20.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(15, (*it)->logic->storage.points);
 
             // Standard #2
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            assertEquals(15, (*it)->points);
+            assertEqualsTolerance(
+               20.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(15, (*it)->logic->storage.points);
 
             // Sinker (points explicitly 22 in spawn)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            assertEquals(22, (*it)->points);
+            assertEqualsTolerance(
+               20.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(22, (*it)->logic->storage.points);
 
             // Floater
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            assertEquals(15, (*it)->points);
+            assertEqualsTolerance(
+               20.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(15, (*it)->logic->storage.points);
          }
 
          // Time should have advanced by one frame (framesLeft decremented)
@@ -667,7 +713,7 @@ class TestSkeet : public UnitTest
          s.bullseye = false;
 
          // Ensure Bird static dimensions for deterministic construction
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // Set the time to level 4 (spawn logic for level 4)
          s.time.levelNumber = 4;
@@ -692,36 +738,46 @@ class TestSkeet : public UnitTest
             // Standard #1
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(18, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(18, (*it)->logic->storage.points);
 
             // Standard #2
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(18, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(18, (*it)->logic->storage.points);
 
             // Sinker (explicit points 25)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(25, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(25, (*it)->logic->storage.points);
 
             // Floater (explicit points 25)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(25, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(25, (*it)->logic->storage.points);
 
             // Crazy (default points 30)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Crazy));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(30, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(30, (*it)->logic->storage.points);
          }
 
          // spawn() should not change time.framesLeft
@@ -752,28 +808,28 @@ class TestSkeet : public UnitTest
          assert(s.points.empty() == true);
 
          // Ensure Bird static dimensions for deterministic construction
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // Create two Standard birds and place them in the game
          Standard *standard1 = new Standard(30.0); // will be adjusted below
          Standard *standard2 = new Standard(30.0);
 
          // Explicitly set positions and velocities (direct member access)
-         standard1->pt.x = 50.0;
-         standard1->pt.y = 30.0;
-         standard1->v.dx = 5.0;
-         standard1->v.dy = 2.0;
-         standard1->dead = false;
-         standard1->radius = 30.0;
-         standard1->points = 10;
+         standard1->logic->storage.pt.x = 50.0;
+         standard1->logic->storage.pt.y = 30.0;
+         standard1->logic->storage.v.dx = 5.0;
+         standard1->logic->storage.v.dy = 2.0;
+         standard1->logic->storage.dead = false;
+         standard1->logic->storage.radius = 30.0;
+         standard1->logic->storage.points = 10;
 
-         standard2->pt.x = 40.0;
-         standard2->pt.y = 70.0;
-         standard2->v.dx = 3.0;
-         standard2->v.dy = -4.0;
-         standard2->dead = false;
-         standard2->radius = 30.0;
-         standard2->points = 10;
+         standard2->logic->storage.pt.x = 40.0;
+         standard2->logic->storage.pt.y = 70.0;
+         standard2->logic->storage.v.dx = 3.0;
+         standard2->logic->storage.v.dy = -4.0;
+         standard2->logic->storage.dead = false;
+         standard2->logic->storage.radius = 30.0;
+         standard2->logic->storage.points = 10;
 
          // Add to skeet
          s.birds.push_back(standard1);
@@ -815,31 +871,53 @@ class TestSkeet : public UnitTest
             // First bird: our b1 advanced
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(standard1Dx, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(standard1Dy, (*it)->v.dy, tolerance);
-            assertEqualsTolerance(50.0 + standard1Dx, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(30.0 + standard1Dy, (*it)->pt.y, tolerance);
-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
-            assertEquals(10, (*it)->points);
+            assertEqualsTolerance(
+               standard1Dx, (*it)->logic->storage.v.dx, tolerance
+            );
+            assertEqualsTolerance(
+               standard1Dy, (*it)->logic->storage.v.dy, tolerance
+            );
+            assertEqualsTolerance(
+               50.0 + standard1Dx, (*it)->logic->storage.pt.x, tolerance
+            );
+            assertEqualsTolerance(
+               30.0 + standard1Dy, (*it)->logic->storage.pt.y, tolerance
+            );
+            assertEqualsTolerance(
+               30.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(10, (*it)->logic->storage.points);
 
             // Second bird: our b2 advanced
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(standard2Dx, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(standard2Dy, (*it)->v.dy, tolerance);
-            assertEqualsTolerance(40.0 + standard2Dx, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(70.0 + standard2Dy, (*it)->pt.y, tolerance);
-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
-            assertEquals(10, (*it)->points);
+            assertEqualsTolerance(
+               standard2Dx, (*it)->logic->storage.v.dx, tolerance
+            );
+            assertEqualsTolerance(
+               standard2Dy, (*it)->logic->storage.v.dy, tolerance
+            );
+            assertEqualsTolerance(
+               40.0 + standard2Dx, (*it)->logic->storage.pt.x, tolerance
+            );
+            assertEqualsTolerance(
+               70.0 + standard2Dy, (*it)->logic->storage.pt.y, tolerance
+            );
+            assertEqualsTolerance(
+               30.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(10, (*it)->logic->storage.points);
 
             // Third bird: spawned Standard (deterministic)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertUnit((*it)->dead == false);
-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
-            assertEquals(10, (*it)->points);
+            assertUnit((*it)->logic->storage.dead == false);
+            assertEqualsTolerance(
+               30.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(10, (*it)->logic->storage.points);
          }
 
          // Time decremented
@@ -879,28 +957,28 @@ class TestSkeet : public UnitTest
          assert(s.effects.empty() == true);
          assert(s.points.empty() == true);
 
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // create originals
          Standard *standard = new Standard(30.0);
          Sinker *sinker = new Sinker(25.0);
 
          // set explicit positions/velocities and internals
-         standard->pt.x = 50.0;
-         standard->pt.y = 30.0;
-         standard->v.dx = 5.0;
-         standard->v.dy = 2.0;
-         standard->dead = false;
-         standard->radius = 301.0;
-         standard->points = 31;
+         standard->logic->storage.pt.x = 50.0;
+         standard->logic->storage.pt.y = 30.0;
+         standard->logic->storage.v.dx = 5.0;
+         standard->logic->storage.v.dy = 2.0;
+         standard->logic->storage.dead = false;
+         standard->logic->storage.radius = 301.0;
+         standard->logic->storage.points = 31;
 
-         sinker->pt.x = 60.0;
-         sinker->pt.y = 80.0;
-         sinker->v.dx = 2.0;
-         sinker->v.dy = -1.0;
-         sinker->dead = false;
-         sinker->radius = 303.0;
-         sinker->points = 33;
+         sinker->logic->storage.pt.x = 60.0;
+         sinker->logic->storage.pt.y = 80.0;
+         sinker->logic->storage.v.dx = 2.0;
+         sinker->logic->storage.v.dy = -1.0;
+         sinker->logic->storage.dead = false;
+         sinker->logic->storage.radius = 303.0;
+         sinker->logic->storage.points = 33;
 
          s.birds.push_back(standard);
          s.birds.push_back(sinker);
@@ -941,39 +1019,63 @@ class TestSkeet : public UnitTest
             // st1 advanced
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(standardDx, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(standardDy, (*it)->v.dy, tolerance);
-            assertEqualsTolerance(50.0 + standardDx, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(30.0 + standardDy, (*it)->pt.y, tolerance);
-            assertEqualsTolerance(301.0, (*it)->radius, tolerance);
-            assertEquals(31, (*it)->points);
+            assertEqualsTolerance(
+               standardDx, (*it)->logic->storage.v.dx, tolerance
+            );
+            assertEqualsTolerance(
+               standardDy, (*it)->logic->storage.v.dy, tolerance
+            );
+            assertEqualsTolerance(
+               50.0 + standardDx, (*it)->logic->storage.pt.x, tolerance
+            );
+            assertEqualsTolerance(
+               30.0 + standardDy, (*it)->logic->storage.pt.y, tolerance
+            );
+            assertEqualsTolerance(
+               301.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(31, (*it)->logic->storage.points);
 
             // sk1 advanced
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(sinkerDx, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(sinkerDy, (*it)->v.dy, tolerance);
-            assertEqualsTolerance(60.0 + sinkerDx, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(80.0 + sinkerDy, (*it)->pt.y, tolerance);
-            assertEqualsTolerance(303.0, (*it)->radius, tolerance);
-            assertEquals(33, (*it)->points);
+            assertEqualsTolerance(
+               sinkerDx, (*it)->logic->storage.v.dx, tolerance
+            );
+            assertEqualsTolerance(
+               sinkerDy, (*it)->logic->storage.v.dy, tolerance
+            );
+            assertEqualsTolerance(
+               60.0 + sinkerDx, (*it)->logic->storage.pt.x, tolerance
+            );
+            assertEqualsTolerance(
+               80.0 + sinkerDy, (*it)->logic->storage.pt.y, tolerance
+            );
+            assertEqualsTolerance(
+               303.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(33, (*it)->logic->storage.points);
 
             // spawned Standard
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertUnit((*it)->dead == false);
-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
-            assertEquals(12, (*it)->points);
+            assertUnit((*it)->logic->storage.dead == false);
+            assertEqualsTolerance(
+               25.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(12, (*it)->logic->storage.points);
 
             // spawned Sinker
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertUnit((*it)->dead == false);
-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
-            assertEquals(20, (*it)->points);
+            assertUnit((*it)->logic->storage.dead == false);
+            assertEqualsTolerance(
+               25.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(20, (*it)->logic->storage.points);
          }
 
          // time decremented
@@ -1002,7 +1104,7 @@ class TestSkeet : public UnitTest
          assert(s.effects.empty() == true);
          assert(s.points.empty() == true);
 
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // create originals
          Standard *standard = new Standard(20.0);
@@ -1010,29 +1112,29 @@ class TestSkeet : public UnitTest
          Floater *floater = new Floater(20.0);
 
          // explicit positions/velocities and internals for the first three
-         standard->pt.x = 50.0;
-         standard->pt.y = 30.0;
-         standard->v.dx = 5.0;
-         standard->v.dy = 2.0;
-         standard->radius = 101;
-         standard->points = 40;
-         standard->dead = false;
+         standard->logic->storage.pt.x = 50.0;
+         standard->logic->storage.pt.y = 30.0;
+         standard->logic->storage.v.dx = 5.0;
+         standard->logic->storage.v.dy = 2.0;
+         standard->logic->storage.radius = 101;
+         standard->logic->storage.points = 40;
+         standard->logic->storage.dead = false;
 
-         sinker->pt.x = 60.0;
-         sinker->pt.y = 80.0;
-         sinker->v.dx = 2.0;
-         sinker->v.dy = -1.0;
-         sinker->dead = false;
-         sinker->radius = 102;
-         sinker->points = 41;
+         sinker->logic->storage.pt.x = 60.0;
+         sinker->logic->storage.pt.y = 80.0;
+         sinker->logic->storage.v.dx = 2.0;
+         sinker->logic->storage.v.dy = -1.0;
+         sinker->logic->storage.dead = false;
+         sinker->logic->storage.radius = 102;
+         sinker->logic->storage.points = 41;
 
-         floater->pt.x = 20.0;
-         floater->pt.y = 40.0;
-         floater->v.dx = 1.0;
-         floater->v.dy = 3.0;
-         floater->dead = false;
-         floater->radius = 103;
-         floater->points = 42;
+         floater->logic->storage.pt.x = 20.0;
+         floater->logic->storage.pt.y = 40.0;
+         floater->logic->storage.v.dx = 1.0;
+         floater->logic->storage.v.dy = 3.0;
+         floater->logic->storage.dead = false;
+         floater->logic->storage.radius = 103;
+         floater->logic->storage.points = 42;
 
          s.birds.push_back(standard);
          s.birds.push_back(sinker);
@@ -1076,59 +1178,89 @@ class TestSkeet : public UnitTest
             // st1 advanced
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(50.0 + standardDx, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(30.0 + standardDy, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(
+               50.0 + standardDx, (*it)->logic->storage.pt.x, tolerance
+            );
+            assertEqualsTolerance(
+               30.0 + standardDy, (*it)->logic->storage.pt.y, tolerance
+            );
             // verify velocity stored on the object after advance
-            assertEqualsTolerance(standardDx, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(standardDy, (*it)->v.dy, tolerance);
-            assertEqualsTolerance(101, (*it)->radius, tolerance);
-            assertEquals(40, (*it)->points);
+            assertEqualsTolerance(
+               standardDx, (*it)->logic->storage.v.dx, tolerance
+            );
+            assertEqualsTolerance(
+               standardDy, (*it)->logic->storage.v.dy, tolerance
+            );
+            assertEqualsTolerance(101, (*it)->logic->storage.radius, tolerance);
+            assertEquals(40, (*it)->logic->storage.points);
 
             // sk1 advanced
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(60.0 + sinkerDx, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(80.0 + sinkerDy, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(
+               60.0 + sinkerDx, (*it)->logic->storage.pt.x, tolerance
+            );
+            assertEqualsTolerance(
+               80.0 + sinkerDy, (*it)->logic->storage.pt.y, tolerance
+            );
             // verify sinker velocity stored on the object after advance
-            assertEqualsTolerance(sinkerDx, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(sinkerDy, (*it)->v.dy, tolerance);
-            assertEqualsTolerance(102, (*it)->radius, tolerance);
-            assertEquals(41, (*it)->points);
+            assertEqualsTolerance(
+               sinkerDx, (*it)->logic->storage.v.dx, tolerance
+            );
+            assertEqualsTolerance(
+               sinkerDy, (*it)->logic->storage.v.dy, tolerance
+            );
+            assertEqualsTolerance(102, (*it)->logic->storage.radius, tolerance);
+            assertEquals(41, (*it)->logic->storage.points);
 
             // fl1 advanced
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
             // verify floater position after advance
-            assertEqualsTolerance(20.0 + floaterDx, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(40.0 + floaterDy, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(
+               20.0 + floaterDx, (*it)->logic->storage.pt.x, tolerance
+            );
+            assertEqualsTolerance(
+               40.0 + floaterDy, (*it)->logic->storage.pt.y, tolerance
+            );
             // verify floater final stored velocity (dy includes +0.05)
-            assertEqualsTolerance(floaterDx, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(floaterDy + 0.05, (*it)->v.dy, tolerance);
-            assertEqualsTolerance(103, (*it)->radius, tolerance);
-            assertEquals(42, (*it)->points);
+            assertEqualsTolerance(
+               floaterDx, (*it)->logic->storage.v.dx, tolerance
+            );
+            assertEqualsTolerance(
+               floaterDy + 0.05, (*it)->logic->storage.v.dy, tolerance
+            );
+            assertEqualsTolerance(103, (*it)->logic->storage.radius, tolerance);
+            assertEquals(42, (*it)->logic->storage.points);
 
             // spawned Standard (size=20)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            assertEquals(15, (*it)->points);
+            assertEqualsTolerance(
+               20.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(15, (*it)->logic->storage.points);
 
             // spawned Sinker (size=20, points=22)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            assertEquals(22, (*it)->points);
+            assertEqualsTolerance(
+               20.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(22, (*it)->logic->storage.points);
 
             // spawned Floater #2 (size=20)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
-            assertEquals(15, (*it)->points);
+            assertEqualsTolerance(
+               20.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(15, (*it)->logic->storage.points);
          }
 
          assertEquals(FRAMES_PER_SECOND * 15 - 1, s.time.framesLeft);
@@ -1157,7 +1289,7 @@ class TestSkeet : public UnitTest
          assert(s.effects.empty() == true);
          assert(s.points.empty() == true);
 
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // create originals
          Standard *standard = new Standard(15.0);
@@ -1166,37 +1298,37 @@ class TestSkeet : public UnitTest
          Crazy *crazy = new Crazy(15.0);
 
          // explicit positions/velocities and internals for the initial four
-         standard->pt.x = 50.0;
-         standard->pt.y = 30.0;
-         standard->v.dx = 5.0;
-         standard->v.dy = 2.0;
-         standard->dead = false;
-         standard->radius = 15.1;
-         standard->points = 60;
+         standard->logic->storage.pt.x = 50.0;
+         standard->logic->storage.pt.y = 30.0;
+         standard->logic->storage.v.dx = 5.0;
+         standard->logic->storage.v.dy = 2.0;
+         standard->logic->storage.dead = false;
+         standard->logic->storage.radius = 15.1;
+         standard->logic->storage.points = 60;
 
-         sinker->pt.x = 60.0;
-         sinker->pt.y = 80.0;
-         sinker->v.dx = 2.0;
-         sinker->v.dy = -1.0;
-         sinker->dead = false;
-         sinker->radius = 15.2;
-         sinker->points = 61;
+         sinker->logic->storage.pt.x = 60.0;
+         sinker->logic->storage.pt.y = 80.0;
+         sinker->logic->storage.v.dx = 2.0;
+         sinker->logic->storage.v.dy = -1.0;
+         sinker->logic->storage.dead = false;
+         sinker->logic->storage.radius = 15.2;
+         sinker->logic->storage.points = 61;
 
-         floater->pt.x = 20.0;
-         floater->pt.y = 40.0;
-         floater->v.dx = 1.0;
-         floater->v.dy = 3.0;
-         floater->dead = false;
-         floater->radius = 15.3;
-         floater->points = 62;
+         floater->logic->storage.pt.x = 20.0;
+         floater->logic->storage.pt.y = 40.0;
+         floater->logic->storage.v.dx = 1.0;
+         floater->logic->storage.v.dy = 3.0;
+         floater->logic->storage.dead = false;
+         floater->logic->storage.radius = 15.3;
+         floater->logic->storage.points = 62;
 
-         crazy->pt.x = 25.0;
-         crazy->pt.y = 50.0;
-         crazy->v.dx = 4.0;
-         crazy->v.dy = 1.0;
-         crazy->dead = false;
-         crazy->radius = 15.4;
-         crazy->points = 63;
+         crazy->logic->storage.pt.x = 25.0;
+         crazy->logic->storage.pt.y = 50.0;
+         crazy->logic->storage.v.dx = 4.0;
+         crazy->logic->storage.v.dy = 1.0;
+         crazy->logic->storage.dead = false;
+         crazy->logic->storage.radius = 15.4;
+         crazy->logic->storage.points = 63;
 
          s.birds.push_back(standard);
          s.birds.push_back(sinker);
@@ -1244,75 +1376,123 @@ class TestSkeet : public UnitTest
             // st1 advanced
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(50.0 + standardDx, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(30.0 + standardDy, (*it)->pt.y, tolerance);
-            assertEqualsTolerance(standardDx, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(standardDy, (*it)->v.dy, tolerance);
-            assertEqualsTolerance(15.1, (*it)->radius, tolerance);
-            assertEquals(60, (*it)->points);
+            assertEqualsTolerance(
+               50.0 + standardDx, (*it)->logic->storage.pt.x, tolerance
+            );
+            assertEqualsTolerance(
+               30.0 + standardDy, (*it)->logic->storage.pt.y, tolerance
+            );
+            assertEqualsTolerance(
+               standardDx, (*it)->logic->storage.v.dx, tolerance
+            );
+            assertEqualsTolerance(
+               standardDy, (*it)->logic->storage.v.dy, tolerance
+            );
+            assertEqualsTolerance(
+               15.1, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(60, (*it)->logic->storage.points);
 
             // sk1 advanced
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(60.0 + sinkerDx, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(80.0 + sinkerDy, (*it)->pt.y, tolerance);
-            assertEqualsTolerance(sinkerDx, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(sinkerDy, (*it)->v.dy, tolerance);
-            assertEqualsTolerance(15.2, (*it)->radius, tolerance);
-            assertEquals(61, (*it)->points);
+            assertEqualsTolerance(
+               60.0 + sinkerDx, (*it)->logic->storage.pt.x, tolerance
+            );
+            assertEqualsTolerance(
+               80.0 + sinkerDy, (*it)->logic->storage.pt.y, tolerance
+            );
+            assertEqualsTolerance(
+               sinkerDx, (*it)->logic->storage.v.dx, tolerance
+            );
+            assertEqualsTolerance(
+               sinkerDy, (*it)->logic->storage.v.dy, tolerance
+            );
+            assertEqualsTolerance(
+               15.2, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(61, (*it)->logic->storage.points);
 
             // fl1 advanced
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
             // verify floater position after advance
-            assertEqualsTolerance(20.0 + floaterDx, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(40.0 + floaterDy, (*it)->pt.y, tolerance);
+            assertEqualsTolerance(
+               20.0 + floaterDx, (*it)->logic->storage.pt.x, tolerance
+            );
+            assertEqualsTolerance(
+               40.0 + floaterDy, (*it)->logic->storage.pt.y, tolerance
+            );
             // verify floater final stored velocity (dy includes +0.05)
-            assertEqualsTolerance(floaterDx, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(floaterDy + 0.05, (*it)->v.dy, tolerance);
-            assertEqualsTolerance(15.3, (*it)->radius, tolerance);
-            assertEquals(62, (*it)->points);
+            assertEqualsTolerance(
+               floaterDx, (*it)->logic->storage.v.dx, tolerance
+            );
+            assertEqualsTolerance(
+               floaterDy + 0.05, (*it)->logic->storage.v.dy, tolerance
+            );
+            assertEqualsTolerance(
+               15.3, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(62, (*it)->logic->storage.points);
 
             // cr1 advanced
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Crazy));
-            assertEqualsTolerance(25.0 + crazyDx, (*it)->pt.x, tolerance);
-            assertEqualsTolerance(50.0 + crazyDy, (*it)->pt.y, tolerance);
-            assertEqualsTolerance(crazyDx, (*it)->v.dx, tolerance);
-            assertEqualsTolerance(crazyDy, (*it)->v.dy, tolerance);
-            assertEqualsTolerance(15.4, (*it)->radius, tolerance);
-            assertEquals(63, (*it)->points);
+            assertEqualsTolerance(
+               25.0 + crazyDx, (*it)->logic->storage.pt.x, tolerance
+            );
+            assertEqualsTolerance(
+               50.0 + crazyDy, (*it)->logic->storage.pt.y, tolerance
+            );
+            assertEqualsTolerance(
+               crazyDx, (*it)->logic->storage.v.dx, tolerance
+            );
+            assertEqualsTolerance(
+               crazyDy, (*it)->logic->storage.v.dy, tolerance
+            );
+            assertEqualsTolerance(
+               15.4, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(63, (*it)->logic->storage.points);
 
             // spawned Standard (size=15, points=18)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Standard));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(18, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(18, (*it)->logic->storage.points);
 
             // spawned Sinker (size=15, points=25)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Sinker));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(25, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(25, (*it)->logic->storage.points);
 
             // spawned Floater (size=15, points=25)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Floater));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(25, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(25, (*it)->logic->storage.points);
 
             // spawned Crazy (size=15, points=30)
             ++it;
             assert(it != s.birds.end());
             assertUnit(typeid(*(*it)) == typeid(Crazy));
-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
-            assertEquals(30, (*it)->points);
+            assertEqualsTolerance(
+               15.0, (*it)->logic->storage.radius, tolerance
+            );
+            assertEquals(30, (*it)->logic->storage.points);
          }
 
          assertEquals(FRAMES_PER_SECOND * 15 - 1, s.time.framesLeft);
@@ -1551,7 +1731,7 @@ class TestSkeet : public UnitTest
          assert(s.points.empty() == true);
 
          // Ensure Bird static dimensions for deterministic construction
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // Explicitly set the gun (there will be a gun but no bullets created)
          s.gun.angle = 0.42;
@@ -1677,7 +1857,7 @@ class TestSkeet : public UnitTest
          assert(s.points.empty() == true);
 
          // Ensure Bird static dimensions for deterministic construction
-         Bird::dimensions = dimensions;
+         BirdStorage::dimensions = dimensions;
 
          // Explicitly set the gun so we can observe the elevation
          s.gun.angle = 0.30; // initial angle

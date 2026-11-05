@@ -16,7 +16,7 @@
 #define HEIGHT 800.0
 
 Position Bullet::dimensions(WIDTH, HEIGHT);
-Position Bird::dimensions(WIDTH, HEIGHT);
+Position BirdStorage::dimensions(WIDTH, HEIGHT);
 
 /*************************************
  * All the interesting work happens here, when

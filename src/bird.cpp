@@ -8,6 +8,7 @@
  ************************************************************************/
 
 #include "bird.h"
+#include "position.h"
 #include "random.h"
 #include <cassert>
 
@@ -42,8 +43,15 @@
 /******************************************************************
  * STANDARD constructor
  ******************************************************************/
-Standard::Standard(double radius, double speed, int points) : Bird()
+Standard::Standard(double radius, double speed, int points)
 {
+   // instantiate logic and set the size
+   logic = new StandardLogic(radius);
+
+   const Position dimensions = logic->getDimensions();
+   Position &pt = logic->getPosition();
+   Velocity &v = logic->getVelocity();
+
    // set the position: standard birds start from the middle
    pt.setY(randomDouble(dimensions.getY() * 0.25, dimensions.getY() * 0.75));
    pt.setX(0.0);
@@ -53,17 +61,21 @@ Standard::Standard(double radius, double speed, int points) : Bird()
    v.setDy(randomDouble(-speed / 5.0, speed / 5.0));
 
    // set the points
-   this->points = points;
-
-   // set the size
-   this->radius = radius;
+   logic->setPoints(points);
 }
 
 /******************************************************************
  * FLOATER constructor
  ******************************************************************/
-Floater::Floater(double radius, double speed, int points) : Bird()
+Floater::Floater(double radius, double speed, int points)
 {
+   // instantiate logic and set the size
+   logic = new FloaterLogic(radius);
+
+   const Position dimensions = logic->getDimensions();
+   Position &pt = logic->getPosition();
+   Velocity &v = logic->getVelocity();
+
    // floaters start on the lower part of the screen because they go up with
    // time
    pt.setY(randomDouble(dimensions.getY() * 0.01, dimensions.getY() * 0.5));
@@ -74,17 +86,21 @@ Floater::Floater(double radius, double speed, int points) : Bird()
    v.setDy(randomDouble(0.0, speed / 3.0));
 
    // set the points value
-   this->points = points;
-
-   // set the size
-   this->radius = radius;
+   logic->setPoints(points);
 }
 
 /******************************************************************
  * SINKER constructor
  ******************************************************************/
-Sinker::Sinker(double radius, double speed, int points) : Bird()
+Sinker::Sinker(double radius, double speed, int points)
 {
+   // instantiate logic and set the size
+   logic = new SinkerLogic(radius);
+
+   const Position dimensions = logic->getDimensions();
+   Position &pt = logic->getPosition();
+   Velocity &v = logic->getVelocity();
+
    // sinkers start on the upper part of the screen because they go down with
    // time
    pt.setY(randomDouble(dimensions.getY() * 0.50, dimensions.getY() * 0.95));
@@ -95,17 +111,21 @@ Sinker::Sinker(double radius, double speed, int points) : Bird()
    v.setDy(randomDouble(-speed / 3.0, 0.0));
 
    // set the points value
-   this->points = points;
-
-   // set the size
-   this->radius = radius;
+   logic->setPoints(points);
 }
 
 /******************************************************************
  * CRAZY constructor
  ******************************************************************/
-Crazy::Crazy(double radius, double speed, int points) : Bird()
+Crazy::Crazy(double radius, double speed, int points)
 {
+   // instantiate logic and set the size
+   logic = new CrazyLogic(radius);
+
+   const Position dimensions = logic->getDimensions();
+   Position &pt = logic->getPosition();
+   Velocity &v = logic->getVelocity();
+
    // crazy birds start in the middle and can go any which way
    pt.setY(randomDouble(dimensions.getY() * 0.25, dimensions.getY() * 0.75));
    pt.setX(0.0);
@@ -115,10 +135,7 @@ Crazy::Crazy(double radius, double speed, int points) : Bird()
    v.setDy(randomDouble(-speed / 5.0, speed / 5.0));
 
    // set the points value
-   this->points = points;
-
-   // set the size
-   this->radius = radius;
+   logic->setPoints(points);
 }
 
 /***************************************************************/
@@ -131,8 +148,12 @@ Crazy::Crazy(double radius, double speed, int points) : Bird()
  * STANDARD ADVANCE
  * How the standard bird moves - inertia and drag
  *********************************************/
-void Standard::advance()
+void StandardLogic::advance()
 {
+   Velocity &v = storage.getVelocity();
+   Position &pt = storage.getPosition();
+   int &points = storage.getPoints();
+
    // small amount of drag
    v *= 0.995;
 
@@ -151,8 +172,12 @@ void Standard::advance()
  * FLOATER ADVANCE
  * How the floating bird moves: strong drag and anti-gravity
  *********************************************/
-void Floater::advance()
+void FloaterLogic::advance()
 {
+   Velocity &v = storage.getVelocity();
+   Position &pt = storage.getPosition();
+   int &points = storage.getPoints();
+
    // large amount of drag
    v *= 0.990;
 
@@ -174,8 +199,12 @@ void Floater::advance()
  * CRAZY ADVANCE
  * How the crazy bird moves, every half a second it changes direciton
  *********************************************/
-void Crazy::advance()
+void CrazyLogic::advance()
 {
+   Velocity &v = storage.getVelocity();
+   Position &pt = storage.getPosition();
+   int &points = storage.getPoints();
+
    // erratic turns eery half a second or so
    if (randomInt(0, 15) == 0)
    {
@@ -198,8 +227,12 @@ void Crazy::advance()
  * SINKER ADVANCE
  * How the sinker bird moves, no drag but gravity
  *********************************************/
-void Sinker::advance()
+void SinkerLogic::advance()
 {
+   Velocity &v = storage.getVelocity();
+   Position &pt = storage.getPosition();
+   int &points = storage.getPoints();
+
    // gravity
    v.addDy(-0.07);
 
@@ -270,6 +303,9 @@ static void drawDisk(
  *********************************************/
 void Standard::draw()
 {
+   Position pt = logic->getPosition();
+   double radius = logic->getRadius();
+
    if (!isDead())
    {
       drawDisk(pt, radius - 0.0, 1.0, 1.0, 1.0); // white outline
@@ -283,6 +319,9 @@ void Standard::draw()
  *********************************************/
 void Floater::draw()
 {
+   Position pt = logic->getPosition();
+   double radius = logic->getRadius();
+
    if (!isDead())
    {
       drawDisk(pt, radius - 0.0, 0.0, 0.0, 1.0); // blue outline
@@ -296,6 +335,9 @@ void Floater::draw()
  *********************************************/
 void Crazy::draw()
 {
+   Position pt = logic->getPosition();
+   double radius = logic->getRadius();
+
    if (!isDead())
    {
       drawDisk(pt, radius * 1.0, 0.0, 0.0, 1.0); // bright blue outside
@@ -312,6 +354,9 @@ void Crazy::draw()
  *********************************************/
 void Sinker::draw()
 {
+   Position pt = logic->getPosition();
+   double radius = logic->getRadius();
+
    if (!isDead())
    {
       drawDisk(pt, radius - 0.0, 0.0, 0.0, 0.8);

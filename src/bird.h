@@ -10,49 +10,170 @@
 #pragma once
 #include "position.h"
 
-/**********************
- * BIRD
- * Everything that can be shot
- **********************/
+/******************************************************************************
+ * BirdLogic - Logic of each bird type
+ *****************************************************************************/
+class BirdStorage
+{
+      friend class TestBird;
+      friend class TestSkeet;
+
+   private:
+      static Position dimensions;
+      int points;
+      bool dead;
+      Position pt;
+      Velocity v;
+      double radius;
+
+   public:
+      BirdStorage(double radius) : radius(radius), dead(false), points(0) {}
+
+      // getters and setters for points
+      int &getPoints() { return points; }
+      void setPoints(int points) { this->points = points; }
+
+      // getters and setters for dead
+      bool isDead() const { return dead; }
+      void kill() { this->dead = true; }
+
+      // getters and setters for position
+      Position &getPosition() { return pt; }
+      void operator=(const Position &rhs) { this->pt = rhs; }
+
+      // getters and setters for velocity
+      Velocity &getVelocity() { return v; }
+      void operator=(const Velocity &rhs) { this->v = rhs; }
+
+      // getter for bird radius
+      double getRadius() const { return radius; }
+      // getter for screen dimensions
+      Position getDimensions() const { return dimensions; }
+};
+
+/******************************************************************************
+ * BirdLogic - Logic of each bird type
+ *****************************************************************************/
+class BirdLogic
+{
+      friend class TestBird;
+      friend class TestSkeet;
+
+   protected:
+      BirdStorage storage;
+
+   public:
+      BirdLogic(double radius) : storage(radius) {}
+      virtual ~BirdLogic() = default;
+      virtual void advance() = 0;
+
+      // getters and setters for points
+      int &getPoints() { return storage.getPoints(); }
+      void setPoints(int points) { storage.setPoints(points); }
+
+      // getters and setters for dead
+      bool isDead() const { return storage.isDead(); }
+      void kill() { storage.kill(); }
+
+      // getters and setters for position
+      Position &getPosition() { return storage.getPosition(); }
+      void operator=(const Position &rhs) { storage = rhs; }
+
+      // getters and setters for velocity
+      Velocity &getVelocity() { return storage.getVelocity(); }
+      void operator=(const Velocity &rhs) { storage = rhs; }
+
+      // getter for bird radius
+      double getRadius() const { return storage.getRadius(); }
+      // getter for screen dimensions
+      Position getDimensions() const { return storage.getDimensions(); }
+
+      // helper function: determine if bird is out of bounds
+      bool isOutOfBounds()
+      {
+         const Position pt = getPosition();
+         const double radius = getRadius();
+         const Position dimensions = storage.getDimensions();
+
+         return (
+            pt.getX() < -radius || pt.getX() >= dimensions.getX() + radius ||
+            pt.getY() < -radius || pt.getY() >= dimensions.getY() + radius
+         );
+      }
+};
+
+/******************************************************************************
+ * Standard bird logic
+ *****************************************************************************/
+class StandardLogic : public BirdLogic
+{
+   public:
+      StandardLogic(double radius) : BirdLogic(radius) {}
+      void advance();
+};
+
+/******************************************************************************
+ * Floater bird logic
+ *****************************************************************************/
+class FloaterLogic : public BirdLogic
+{
+   public:
+      FloaterLogic(double radius) : BirdLogic(radius) {}
+      void advance();
+};
+
+/******************************************************************************
+ * Sinker bird logic
+ *****************************************************************************/
+class SinkerLogic : public BirdLogic
+{
+   public:
+      SinkerLogic(double radius) : BirdLogic(radius) {}
+      void advance();
+};
+
+/******************************************************************************
+ * Crazy bird logic
+ *****************************************************************************/
+class CrazyLogic : public BirdLogic
+{
+   public:
+      CrazyLogic(double radius) : BirdLogic(radius) {}
+      void advance();
+};
+
+/******************************************************************************
+ * Bird - Everything that can be shot
+ *****************************************************************************/
 class Bird
 {
       friend class TestBird;
       friend class TestSkeet;
 
    protected:
-      static Position dimensions; // size of the screen
-      Position pt; // position of the flyer
-      Velocity v; // velocity of the flyer
-      double radius; // the size (radius) of the flyer
-      bool dead; // is this flyer dead?
-      int points; // how many points is this worth?
+      BirdLogic *logic;
 
    public:
-      Bird() : dead(false), points(0), radius(1.0) {}
+      Bird() : logic(nullptr) {}
+      virtual ~Bird() { delete logic; }
 
       // setters
-      void operator=(const Position &rhs) { pt = rhs; }
-      void operator=(const Velocity &rhs) { v = rhs; }
-      void kill() { dead = true; }
-      void setPoints(int pts) { points = pts; }
+      void operator=(const Position &rhs) { *logic = rhs; }
+      void operator=(const Velocity &rhs) { *logic = rhs; }
+      void setPoints(int pts) { logic->setPoints(pts); }
+      void kill() { logic->kill(); }
 
       // getters
-      bool isDead() const { return dead; }
-      Position getPosition() const { return pt; }
-      Velocity getVelocity() const { return v; }
-      double getRadius() const { return radius; }
-      int getPoints() const { return points; }
-      bool isOutOfBounds() const
-      {
-         return (
-            pt.getX() < -radius || pt.getX() >= dimensions.getX() + radius ||
-            pt.getY() < -radius || pt.getY() >= dimensions.getY() + radius
-         );
-      }
+      Position getPosition() const { return logic->getPosition(); }
+      Velocity getVelocity() const { return logic->getVelocity(); }
+      bool isOutOfBounds() const { return logic->isOutOfBounds(); }
+      double getRadius() const { return logic->getRadius(); }
+      int getPoints() const { return logic->getPoints(); }
+      bool isDead() const { return logic->isDead(); }
 
       // special functions
       virtual void draw() = 0;
-      virtual void advance() = 0;
+      virtual void advance() { logic->advance(); }
 };
 
 /*********************************************
@@ -66,7 +187,6 @@ class Standard : public Bird
    public:
       Standard(double radius = 25.0, double speed = 5.0, int points = 10);
       void draw();
-      void advance();
 };
 
 /*********************************************
@@ -80,7 +200,6 @@ class Floater : public Bird
    public:
       Floater(double radius = 30.0, double speed = 5.0, int points = 15);
       void draw();
-      void advance();
 };
 
 /*********************************************
@@ -94,7 +213,6 @@ class Crazy : public Bird
    public:
       Crazy(double radius = 30.0, double speed = 4.5, int points = 30);
       void draw();
-      void advance();
 };
 
 /*********************************************
@@ -106,7 +224,6 @@ class Sinker : public Bird
    public:
       Sinker(double radius = 30.0, double speed = 4.5, int points = 20);
       void draw();
-      void advance();
 };
 
 /*********************************************
@@ -115,18 +232,17 @@ class Sinker : public Bird
  * called during tests; if either is called the test will fail via
  * assert(false).
  *********************************************/
+class BirdLogicFake : public BirdLogic
+{
+   public:
+      BirdLogicFake(double radius = 0.0) : BirdLogic(radius) {}
+      void advance() { assert(false); }
+};
+
 class BirdFake : public Bird
 {
    public:
-      BirdFake() : Bird() {}
-      void draw() override
-      {
-         // If this is called the test should fail.
-         assert(false);
-      }
-      void advance() override
-      {
-         // If this is called the test should fail.
-         assert(false);
-      }
+      BirdFake() : Bird() { logic = new BirdLogicFake; }
+      void draw() override { assert(false); }
+      void advance() override { assert(false); }
 };
