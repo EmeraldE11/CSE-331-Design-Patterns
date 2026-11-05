@@ -1,0 +1,2406 @@
+diff --git a/src/bird.cpp b/src/bird.cpp
+index 58d03c6..e9bac14 100644
+--- a/src/bird.cpp
++++ b/src/bird.cpp
+@@ -8,6 +8,7 @@
+  ************************************************************************/
+ 
+ #include "bird.h"
++#include "position.h"
+ #include "random.h"
+ #include <cassert>
+ 
+@@ -42,8 +43,15 @@
+ /******************************************************************
+  * STANDARD constructor
+  ******************************************************************/
+-Standard::Standard(double radius, double speed, int points) : Bird()
++Standard::Standard(double radius, double speed, int points)
+ {
++   // instantiate logic and set the size
++   logic = new StandardLogic(radius);
++
++   const Position dimensions = logic->getDimensions();
++   Position &pt = logic->getPosition();
++   Velocity &v = logic->getVelocity();
++
+    // set the position: standard birds start from the middle
+    pt.setY(randomDouble(dimensions.getY() * 0.25, dimensions.getY() * 0.75));
+    pt.setX(0.0);
+@@ -53,17 +61,21 @@ Standard::Standard(double radius, double speed, int points) : Bird()
+    v.setDy(randomDouble(-speed / 5.0, speed / 5.0));
+ 
+    // set the points
+-   this->points = points;
+-
+-   // set the size
+-   this->radius = radius;
++   logic->setPoints(points);
+ }
+ 
+ /******************************************************************
+  * FLOATER constructor
+  ******************************************************************/
+-Floater::Floater(double radius, double speed, int points) : Bird()
++Floater::Floater(double radius, double speed, int points)
+ {
++   // instantiate logic and set the size
++   logic = new FloaterLogic(radius);
++
++   const Position dimensions = logic->getDimensions();
++   Position &pt = logic->getPosition();
++   Velocity &v = logic->getVelocity();
++
+    // floaters start on the lower part of the screen because they go up with
+    // time
+    pt.setY(randomDouble(dimensions.getY() * 0.01, dimensions.getY() * 0.5));
+@@ -74,17 +86,21 @@ Floater::Floater(double radius, double speed, int points) : Bird()
+    v.setDy(randomDouble(0.0, speed / 3.0));
+ 
+    // set the points value
+-   this->points = points;
+-
+-   // set the size
+-   this->radius = radius;
++   logic->setPoints(points);
+ }
+ 
+ /******************************************************************
+  * SINKER constructor
+  ******************************************************************/
+-Sinker::Sinker(double radius, double speed, int points) : Bird()
++Sinker::Sinker(double radius, double speed, int points)
+ {
++   // instantiate logic and set the size
++   logic = new SinkerLogic(radius);
++
++   const Position dimensions = logic->getDimensions();
++   Position &pt = logic->getPosition();
++   Velocity &v = logic->getVelocity();
++
+    // sinkers start on the upper part of the screen because they go down with
+    // time
+    pt.setY(randomDouble(dimensions.getY() * 0.50, dimensions.getY() * 0.95));
+@@ -95,17 +111,21 @@ Sinker::Sinker(double radius, double speed, int points) : Bird()
+    v.setDy(randomDouble(-speed / 3.0, 0.0));
+ 
+    // set the points value
+-   this->points = points;
+-
+-   // set the size
+-   this->radius = radius;
++   logic->setPoints(points);
+ }
+ 
+ /******************************************************************
+  * CRAZY constructor
+  ******************************************************************/
+-Crazy::Crazy(double radius, double speed, int points) : Bird()
++Crazy::Crazy(double radius, double speed, int points)
+ {
++   // instantiate logic and set the size
++   logic = new CrazyLogic(radius);
++
++   const Position dimensions = logic->getDimensions();
++   Position &pt = logic->getPosition();
++   Velocity &v = logic->getVelocity();
++
+    // crazy birds start in the middle and can go any which way
+    pt.setY(randomDouble(dimensions.getY() * 0.25, dimensions.getY() * 0.75));
+    pt.setX(0.0);
+@@ -115,10 +135,7 @@ Crazy::Crazy(double radius, double speed, int points) : Bird()
+    v.setDy(randomDouble(-speed / 5.0, speed / 5.0));
+ 
+    // set the points value
+-   this->points = points;
+-
+-   // set the size
+-   this->radius = radius;
++   logic->setPoints(points);
+ }
+ 
+ /***************************************************************/
+@@ -131,8 +148,12 @@ Crazy::Crazy(double radius, double speed, int points) : Bird()
+  * STANDARD ADVANCE
+  * How the standard bird moves - inertia and drag
+  *********************************************/
+-void Standard::advance()
++void StandardLogic::advance()
+ {
++   Velocity &v = storage.getVelocity();
++   Position &pt = storage.getPosition();
++   int &points = storage.getPoints();
++
+    // small amount of drag
+    v *= 0.995;
+ 
+@@ -151,8 +172,12 @@ void Standard::advance()
+  * FLOATER ADVANCE
+  * How the floating bird moves: strong drag and anti-gravity
+  *********************************************/
+-void Floater::advance()
++void FloaterLogic::advance()
+ {
++   Velocity &v = storage.getVelocity();
++   Position &pt = storage.getPosition();
++   int &points = storage.getPoints();
++
+    // large amount of drag
+    v *= 0.990;
+ 
+@@ -174,8 +199,12 @@ void Floater::advance()
+  * CRAZY ADVANCE
+  * How the crazy bird moves, every half a second it changes direciton
+  *********************************************/
+-void Crazy::advance()
++void CrazyLogic::advance()
+ {
++   Velocity &v = storage.getVelocity();
++   Position &pt = storage.getPosition();
++   int &points = storage.getPoints();
++
+    // erratic turns eery half a second or so
+    if (randomInt(0, 15) == 0)
+    {
+@@ -198,8 +227,12 @@ void Crazy::advance()
+  * SINKER ADVANCE
+  * How the sinker bird moves, no drag but gravity
+  *********************************************/
+-void Sinker::advance()
++void SinkerLogic::advance()
+ {
++   Velocity &v = storage.getVelocity();
++   Position &pt = storage.getPosition();
++   int &points = storage.getPoints();
++
+    // gravity
+    v.addDy(-0.07);
+ 
+@@ -270,6 +303,9 @@ static void drawDisk(
+  *********************************************/
+ void Standard::draw()
+ {
++   Position pt = logic->getPosition();
++   double radius = logic->getRadius();
++
+    if (!isDead())
+    {
+       drawDisk(pt, radius - 0.0, 1.0, 1.0, 1.0); // white outline
+@@ -283,6 +319,9 @@ void Standard::draw()
+  *********************************************/
+ void Floater::draw()
+ {
++   Position pt = logic->getPosition();
++   double radius = logic->getRadius();
++
+    if (!isDead())
+    {
+       drawDisk(pt, radius - 0.0, 0.0, 0.0, 1.0); // blue outline
+@@ -296,6 +335,9 @@ void Floater::draw()
+  *********************************************/
+ void Crazy::draw()
+ {
++   Position pt = logic->getPosition();
++   double radius = logic->getRadius();
++
+    if (!isDead())
+    {
+       drawDisk(pt, radius * 1.0, 0.0, 0.0, 1.0); // bright blue outside
+@@ -312,6 +354,9 @@ void Crazy::draw()
+  *********************************************/
+ void Sinker::draw()
+ {
++   Position pt = logic->getPosition();
++   double radius = logic->getRadius();
++
+    if (!isDead())
+    {
+       drawDisk(pt, radius - 0.0, 0.0, 0.0, 0.8);
+diff --git a/src/bird.h b/src/bird.h
+index 2a46936..2066d3a 100644
+--- a/src/bird.h
++++ b/src/bird.h
+@@ -10,49 +10,170 @@
+ #pragma once
+ #include "position.h"
+ 
+-/**********************
+- * BIRD
+- * Everything that can be shot
+- **********************/
+-class Bird
++/******************************************************************************
++ * BirdLogic - Logic of each bird type
++ *****************************************************************************/
++class BirdStorage
+ {
+       friend class TestBird;
+       friend class TestSkeet;
+ 
+-   protected:
+-      static Position dimensions; // size of the screen
+-      Position pt; // position of the flyer
+-      Velocity v; // velocity of the flyer
+-      double radius; // the size (radius) of the flyer
+-      bool dead; // is this flyer dead?
+-      int points; // how many points is this worth?
++   private:
++      static Position dimensions;
++      int points;
++      bool dead;
++      Position pt;
++      Velocity v;
++      double radius;
+ 
+    public:
+-      Bird() : dead(false), points(0), radius(1.0) {}
++      BirdStorage(double radius) : radius(radius), dead(false), points(0) {}
+ 
+-      // setters
+-      void operator=(const Position &rhs) { pt = rhs; }
+-      void operator=(const Velocity &rhs) { v = rhs; }
+-      void kill() { dead = true; }
+-      void setPoints(int pts) { points = pts; }
++      // getters and setters for points
++      int &getPoints() { return points; }
++      void setPoints(int points) { this->points = points; }
+ 
+-      // getters
++      // getters and setters for dead
+       bool isDead() const { return dead; }
+-      Position getPosition() const { return pt; }
+-      Velocity getVelocity() const { return v; }
++      void kill() { this->dead = true; }
++
++      // getters and setters for position
++      Position &getPosition() { return pt; }
++      void operator=(const Position &rhs) { this->pt = rhs; }
++
++      // getters and setters for velocity
++      Velocity &getVelocity() { return v; }
++      void operator=(const Velocity &rhs) { this->v = rhs; }
++
++      // getter for bird radius
+       double getRadius() const { return radius; }
+-      int getPoints() const { return points; }
+-      bool isOutOfBounds() const
++      // getter for screen dimensions
++      Position getDimensions() const { return dimensions; }
++};
++
++/******************************************************************************
++ * BirdLogic - Logic of each bird type
++ *****************************************************************************/
++class BirdLogic
++{
++      friend class TestBird;
++      friend class TestSkeet;
++
++   protected:
++      BirdStorage storage;
++
++   public:
++      BirdLogic(double radius) : storage(radius) {}
++      virtual ~BirdLogic() = default;
++      virtual void advance() = 0;
++
++      // getters and setters for points
++      int &getPoints() { return storage.getPoints(); }
++      void setPoints(int points) { storage.setPoints(points); }
++
++      // getters and setters for dead
++      bool isDead() const { return storage.isDead(); }
++      void kill() { storage.kill(); }
++
++      // getters and setters for position
++      Position &getPosition() { return storage.getPosition(); }
++      void operator=(const Position &rhs) { storage = rhs; }
++
++      // getters and setters for velocity
++      Velocity &getVelocity() { return storage.getVelocity(); }
++      void operator=(const Velocity &rhs) { storage = rhs; }
++
++      // getter for bird radius
++      double getRadius() const { return storage.getRadius(); }
++      // getter for screen dimensions
++      Position getDimensions() const { return storage.getDimensions(); }
++
++      // helper function: determine if bird is out of bounds
++      bool isOutOfBounds()
+       {
++         const Position pt = getPosition();
++         const double radius = getRadius();
++         const Position dimensions = storage.getDimensions();
++
+          return (
+             pt.getX() < -radius || pt.getX() >= dimensions.getX() + radius ||
+             pt.getY() < -radius || pt.getY() >= dimensions.getY() + radius
+          );
+       }
++};
++
++/******************************************************************************
++ * Standard bird logic
++ *****************************************************************************/
++class StandardLogic : public BirdLogic
++{
++   public:
++      StandardLogic(double radius) : BirdLogic(radius) {}
++      void advance();
++};
++
++/******************************************************************************
++ * Floater bird logic
++ *****************************************************************************/
++class FloaterLogic : public BirdLogic
++{
++   public:
++      FloaterLogic(double radius) : BirdLogic(radius) {}
++      void advance();
++};
++
++/******************************************************************************
++ * Sinker bird logic
++ *****************************************************************************/
++class SinkerLogic : public BirdLogic
++{
++   public:
++      SinkerLogic(double radius) : BirdLogic(radius) {}
++      void advance();
++};
++
++/******************************************************************************
++ * Crazy bird logic
++ *****************************************************************************/
++class CrazyLogic : public BirdLogic
++{
++   public:
++      CrazyLogic(double radius) : BirdLogic(radius) {}
++      void advance();
++};
++
++/******************************************************************************
++ * Bird - Everything that can be shot
++ *****************************************************************************/
++class Bird
++{
++      friend class TestBird;
++      friend class TestSkeet;
++
++   protected:
++      BirdLogic *logic;
++
++   public:
++      Bird() : logic(nullptr) {}
++      virtual ~Bird() { delete logic; }
++
++      // setters
++      void operator=(const Position &rhs) { *logic = rhs; }
++      void operator=(const Velocity &rhs) { *logic = rhs; }
++      void setPoints(int pts) { logic->setPoints(pts); }
++      void kill() { logic->kill(); }
++
++      // getters
++      Position getPosition() const { return logic->getPosition(); }
++      Velocity getVelocity() const { return logic->getVelocity(); }
++      bool isOutOfBounds() const { return logic->isOutOfBounds(); }
++      double getRadius() const { return logic->getRadius(); }
++      int getPoints() const { return logic->getPoints(); }
++      bool isDead() const { return logic->isDead(); }
+ 
+       // special functions
+       virtual void draw() = 0;
+-      virtual void advance() = 0;
++      virtual void advance() { logic->advance(); }
+ };
+ 
+ /*********************************************
+@@ -66,7 +187,6 @@ class Standard : public Bird
+    public:
+       Standard(double radius = 25.0, double speed = 5.0, int points = 10);
+       void draw();
+-      void advance();
+ };
+ 
+ /*********************************************
+@@ -80,7 +200,6 @@ class Floater : public Bird
+    public:
+       Floater(double radius = 30.0, double speed = 5.0, int points = 15);
+       void draw();
+-      void advance();
+ };
+ 
+ /*********************************************
+@@ -94,7 +213,6 @@ class Crazy : public Bird
+    public:
+       Crazy(double radius = 30.0, double speed = 4.5, int points = 30);
+       void draw();
+-      void advance();
+ };
+ 
+ /*********************************************
+@@ -106,7 +224,6 @@ class Sinker : public Bird
+    public:
+       Sinker(double radius = 30.0, double speed = 4.5, int points = 20);
+       void draw();
+-      void advance();
+ };
+ 
+ /*********************************************
+@@ -115,18 +232,17 @@ class Sinker : public Bird
+  * called during tests; if either is called the test will fail via
+  * assert(false).
+  *********************************************/
++class BirdLogicFake : public BirdLogic
++{
++   public:
++      BirdLogicFake(double radius = 0.0) : BirdLogic(radius) {}
++      void advance() { assert(false); }
++};
++
+ class BirdFake : public Bird
+ {
+    public:
+-      BirdFake() : Bird() {}
+-      void draw() override
+-      {
+-         // If this is called the test should fail.
+-         assert(false);
+-      }
+-      void advance() override
+-      {
+-         // If this is called the test should fail.
+-         assert(false);
+-      }
++      BirdFake() : Bird() { logic = new BirdLogicFake; }
++      void draw() override { assert(false); }
++      void advance() override { assert(false); }
+ };
+diff --git a/src/game.cpp b/src/game.cpp
+index 3c171e6..c912956 100644
+--- a/src/game.cpp
++++ b/src/game.cpp
+@@ -16,7 +16,7 @@
+ #define HEIGHT 800.0
+ 
+ Position Bullet::dimensions(WIDTH, HEIGHT);
+-Position Bird::dimensions(WIDTH, HEIGHT);
++Position BirdStorage::dimensions(WIDTH, HEIGHT);
+ 
+ /*************************************
+  * All the interesting work happens here, when
+diff --git a/src/testBird.h b/src/testBird.h
+index fde6489..1f6c1b6 100644
+--- a/src/testBird.h
++++ b/src/testBird.h
+@@ -52,258 +52,258 @@ class TestBird : public UnitTest
+       // right side - just inside (pt.x < dimensions.x + radius)
+       void test_isOutOfBounds_rightNear()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          BirdFake b;
+-         b.pt.x = 204.0; // 204 < 200 + 5 => inside
+-         b.pt.y = 50.0;
+-         b.v.dx = 0.0;
+-         b.v.dy = 0.0;
+-         b.radius = 5.0;
+-         b.dead = false;
+-         b.points = 7;
++         b.logic->storage.pt.x = 204.0; // 204 < 200 + 5 => inside
++         b.logic->storage.pt.y = 50.0;
++         b.logic->storage.v.dx = 0.0;
++         b.logic->storage.v.dy = 0.0;
++         b.logic->storage.radius = 5.0;
++         b.logic->storage.dead = false;
++         b.logic->storage.points = 7;
+          // EXERCISE
+          bool out = b.isOutOfBounds();
+          // VERIFY
+-         assertEqualsTolerance(204.0, b.pt.x, tolerance);
+-         assertEqualsTolerance(50.0, b.pt.y, tolerance);
+-         assertEqualsTolerance(0.0, b.v.dx, tolerance);
+-         assertEqualsTolerance(0.0, b.v.dy, tolerance);
+-         assertEqualsTolerance(5.0, b.radius, tolerance);
+-         assertUnit(b.dead == false);
+-         assertUnit(b.points == 7);
++         assertEqualsTolerance(204.0, b.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(50.0, b.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(0.0, b.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(0.0, b.logic->storage.v.dy, tolerance);
++         assertEqualsTolerance(5.0, b.logic->storage.radius, tolerance);
++         assertUnit(b.logic->storage.dead == false);
++         assertUnit(b.logic->storage.points == 7);
+          assertUnit(out == false);
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // right side - exactly at dimensions + radius => out
+       void test_isOutOfBounds_rightOver()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          BirdFake b;
+-         b.pt.x = 205.0; // 205 >= 200 + 5 => out
+-         b.pt.y = 60.0;
+-         b.v.dx = 1.0;
+-         b.v.dy = 2.0;
+-         b.radius = 5.0;
+-         b.dead = true;
+-         b.points = 3;
++         b.logic->storage.pt.x = 205.0; // 205 >= 200 + 5 => out
++         b.logic->storage.pt.y = 60.0;
++         b.logic->storage.v.dx = 1.0;
++         b.logic->storage.v.dy = 2.0;
++         b.logic->storage.radius = 5.0;
++         b.logic->storage.dead = true;
++         b.logic->storage.points = 3;
+          // EXERCISE
+          bool out = b.isOutOfBounds();
+          // VERIFY
+-         assertEqualsTolerance(205.0, b.pt.x, tolerance);
+-         assertEqualsTolerance(60.0, b.pt.y, tolerance);
+-         assertEqualsTolerance(1.0, b.v.dx, tolerance);
+-         assertEqualsTolerance(2.0, b.v.dy, tolerance);
+-         assertEqualsTolerance(5.0, b.radius, tolerance);
+-         assertUnit(b.dead == true);
+-         assertUnit(b.points == 3);
++         assertEqualsTolerance(205.0, b.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(60.0, b.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(1.0, b.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(2.0, b.logic->storage.v.dy, tolerance);
++         assertEqualsTolerance(5.0, b.logic->storage.radius, tolerance);
++         assertUnit(b.logic->storage.dead == true);
++         assertUnit(b.logic->storage.points == 3);
+          assertUnit(out == true);
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // left side - just inside (pt.x > -radius)
+       void test_isOutOfBounds_leftNear()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          BirdFake b;
+-         b.pt.x = -4.0; // -4 > -5 => inside
+-         b.pt.y = 100.0;
+-         b.v.dx = -1.0;
+-         b.v.dy = 0.0;
+-         b.radius = 5.0;
+-         b.dead = false;
+-         b.points = 11;
++         b.logic->storage.pt.x = -4.0; // -4 > -5 => inside
++         b.logic->storage.pt.y = 100.0;
++         b.logic->storage.v.dx = -1.0;
++         b.logic->storage.v.dy = 0.0;
++         b.logic->storage.radius = 5.0;
++         b.logic->storage.dead = false;
++         b.logic->storage.points = 11;
+          // EXERCISE
+          bool out = b.isOutOfBounds();
+          // VERIFY
+-         assertEqualsTolerance(-4.0, b.pt.x, tolerance);
+-         assertEqualsTolerance(100.0, b.pt.y, tolerance);
+-         assertEqualsTolerance(-1.0, b.v.dx, tolerance);
+-         assertEqualsTolerance(0.0, b.v.dy, tolerance);
+-         assertEqualsTolerance(5.0, b.radius, tolerance);
+-         assertUnit(b.dead == false);
+-         assertUnit(b.points == 11);
++         assertEqualsTolerance(-4.0, b.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(100.0, b.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(-1.0, b.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(0.0, b.logic->storage.v.dy, tolerance);
++         assertEqualsTolerance(5.0, b.logic->storage.radius, tolerance);
++         assertUnit(b.logic->storage.dead == false);
++         assertUnit(b.logic->storage.points == 11);
+          assertUnit(out == false);
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // left side - just outside (pt.x < -radius)
+       void test_isOutOfBounds_leftOver()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          BirdFake b;
+-         b.pt.x = -6.0; // -6 < -5 => out
+-         b.pt.y = 100.0;
+-         b.v.dx = -2.0;
+-         b.v.dy = 1.0;
+-         b.radius = 5.0;
+-         b.dead = true;
+-         b.points = 5;
++         b.logic->storage.pt.x = -6.0; // -6 < -5 => out
++         b.logic->storage.pt.y = 100.0;
++         b.logic->storage.v.dx = -2.0;
++         b.logic->storage.v.dy = 1.0;
++         b.logic->storage.radius = 5.0;
++         b.logic->storage.dead = true;
++         b.logic->storage.points = 5;
+          // EXERCISE
+          bool out = b.isOutOfBounds();
+          // VERIFY
+-         assertEqualsTolerance(-6.0, b.pt.x, tolerance);
+-         assertEqualsTolerance(100.0, b.pt.y, tolerance);
+-         assertEqualsTolerance(-2.0, b.v.dx, tolerance);
+-         assertEqualsTolerance(1.0, b.v.dy, tolerance);
+-         assertEqualsTolerance(5.0, b.radius, tolerance);
+-         assertUnit(b.dead == true);
+-         assertUnit(b.points == 5);
++         assertEqualsTolerance(-6.0, b.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(100.0, b.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(-2.0, b.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(1.0, b.logic->storage.v.dy, tolerance);
++         assertEqualsTolerance(5.0, b.logic->storage.radius, tolerance);
++         assertUnit(b.logic->storage.dead == true);
++         assertUnit(b.logic->storage.points == 5);
+          assertUnit(out == true);
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // top side - just inside (pt.y < dimensions.y + radius)
+       void test_isOutOfBounds_topNear()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          BirdFake b;
+-         b.pt.x = 120.0;
+-         b.pt.y = 204.0; // 204 < 200 + 5 => inside
+-         b.v.dx = 0.5;
+-         b.v.dy = 0.5;
+-         b.radius = 5.0;
+-         b.dead = false;
+-         b.points = 2;
++         b.logic->storage.pt.x = 120.0;
++         b.logic->storage.pt.y = 204.0; // 204 < 200 + 5 => inside
++         b.logic->storage.v.dx = 0.5;
++         b.logic->storage.v.dy = 0.5;
++         b.logic->storage.radius = 5.0;
++         b.logic->storage.dead = false;
++         b.logic->storage.points = 2;
+          // EXERCISE
+          bool out = b.isOutOfBounds();
+          // VERIFY
+-         assertEqualsTolerance(120.0, b.pt.x, tolerance);
+-         assertEqualsTolerance(204.0, b.pt.y, tolerance);
+-         assertEqualsTolerance(0.5, b.v.dx, tolerance);
+-         assertEqualsTolerance(0.5, b.v.dy, tolerance);
+-         assertEqualsTolerance(5.0, b.radius, tolerance);
+-         assertUnit(b.dead == false);
+-         assertUnit(b.points == 2);
++         assertEqualsTolerance(120.0, b.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(204.0, b.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(0.5, b.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(0.5, b.logic->storage.v.dy, tolerance);
++         assertEqualsTolerance(5.0, b.logic->storage.radius, tolerance);
++         assertUnit(b.logic->storage.dead == false);
++         assertUnit(b.logic->storage.points == 2);
+          assertUnit(out == false);
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // top side - just outside (pt.y >= dimensions.y + radius)
+       void test_isOutOfBounds_topOver()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          BirdFake b;
+-         b.pt.x = 120.0;
+-         b.pt.y = 205.0; // 205 >= 200 + 5 => out
+-         b.v.dx = 0.0;
+-         b.v.dy = 3.0;
+-         b.radius = 5.0;
+-         b.dead = true;
+-         b.points = 9;
++         b.logic->storage.pt.x = 120.0;
++         b.logic->storage.pt.y = 205.0; // 205 >= 200 + 5 => out
++         b.logic->storage.v.dx = 0.0;
++         b.logic->storage.v.dy = 3.0;
++         b.logic->storage.radius = 5.0;
++         b.logic->storage.dead = true;
++         b.logic->storage.points = 9;
+          // EXERCISE
+          bool out = b.isOutOfBounds();
+          // VERIFY
+-         assertEqualsTolerance(120.0, b.pt.x, tolerance);
+-         assertEqualsTolerance(205.0, b.pt.y, tolerance);
+-         assertEqualsTolerance(0.0, b.v.dx, tolerance);
+-         assertEqualsTolerance(3.0, b.v.dy, tolerance);
+-         assertEqualsTolerance(5.0, b.radius, tolerance);
+-         assertUnit(b.dead == true);
+-         assertUnit(b.points == 9);
++         assertEqualsTolerance(120.0, b.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(205.0, b.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(0.0, b.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(3.0, b.logic->storage.v.dy, tolerance);
++         assertEqualsTolerance(5.0, b.logic->storage.radius, tolerance);
++         assertUnit(b.logic->storage.dead == true);
++         assertUnit(b.logic->storage.points == 9);
+          assertUnit(out == true);
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // bottom side - just inside (pt.y > -radius)
+       void test_isOutOfBounds_bottomNear()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          BirdFake b;
+-         b.pt.x = 80.0;
+-         b.pt.y = -4.0; // -4 > -5 => inside
+-         b.v.dx = 0.0;
+-         b.v.dy = -1.5;
+-         b.radius = 5.0;
+-         b.dead = false;
+-         b.points = 12;
++         b.logic->storage.pt.x = 80.0;
++         b.logic->storage.pt.y = -4.0; // -4 > -5 => inside
++         b.logic->storage.v.dx = 0.0;
++         b.logic->storage.v.dy = -1.5;
++         b.logic->storage.radius = 5.0;
++         b.logic->storage.dead = false;
++         b.logic->storage.points = 12;
+          // EXERCISE
+          bool out = b.isOutOfBounds();
+          // VERIFY
+-         assertEqualsTolerance(80.0, b.pt.x, tolerance);
+-         assertEqualsTolerance(-4.0, b.pt.y, tolerance);
+-         assertEqualsTolerance(0.0, b.v.dx, tolerance);
+-         assertEqualsTolerance(-1.5, b.v.dy, tolerance);
+-         assertEqualsTolerance(5.0, b.radius, tolerance);
+-         assertUnit(b.dead == false);
+-         assertUnit(b.points == 12);
++         assertEqualsTolerance(80.0, b.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(-4.0, b.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(0.0, b.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(-1.5, b.logic->storage.v.dy, tolerance);
++         assertEqualsTolerance(5.0, b.logic->storage.radius, tolerance);
++         assertUnit(b.logic->storage.dead == false);
++         assertUnit(b.logic->storage.points == 12);
+          assertUnit(out == false);
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // bottom side - just outside (pt.y < -radius)
+       void test_isOutOfBounds_bottomOver()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          BirdFake b;
+-         b.pt.x = 80.0;
+-         b.pt.y = -6.0; // -6 < -5 => out
+-         b.v.dx = 1.0;
+-         b.v.dy = -2.0;
+-         b.radius = 5.0;
+-         b.dead = true;
+-         b.points = 4;
++         b.logic->storage.pt.x = 80.0;
++         b.logic->storage.pt.y = -6.0; // -6 < -5 => out
++         b.logic->storage.v.dx = 1.0;
++         b.logic->storage.v.dy = -2.0;
++         b.logic->storage.radius = 5.0;
++         b.logic->storage.dead = true;
++         b.logic->storage.points = 4;
+          // EXERCISE
+          bool out = b.isOutOfBounds();
+          // VERIFY
+-         assertEqualsTolerance(80.0, b.pt.x, tolerance);
+-         assertEqualsTolerance(-6.0, b.pt.y, tolerance);
+-         assertEqualsTolerance(1.0, b.v.dx, tolerance);
+-         assertEqualsTolerance(-2.0, b.v.dy, tolerance);
+-         assertEqualsTolerance(5.0, b.radius, tolerance);
+-         assertUnit(b.dead == true);
+-         assertUnit(b.points == 4);
++         assertEqualsTolerance(80.0, b.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(-6.0, b.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(1.0, b.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(-2.0, b.logic->storage.v.dy, tolerance);
++         assertEqualsTolerance(5.0, b.logic->storage.radius, tolerance);
++         assertUnit(b.logic->storage.dead == true);
++         assertUnit(b.logic->storage.points == 4);
+          assertUnit(out == true);
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // Advance: Standard stays alive after advance (within boundary)
+       void test_advance_standardAlive()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          Standard s(5.0, 10.0, 10); // will be overwritten explicitly
+-         s.pt.x = 194.0;
+-         s.pt.y = 50.0;
+-         s.v.dx = 10.0;
+-         s.v.dy = 0.0;
+-         s.radius = 5.0;
+-         s.dead = false;
+-         s.points = 10;
++         s.logic->storage.pt.x = 194.0;
++         s.logic->storage.pt.y = 50.0;
++         s.logic->storage.v.dx = 10.0;
++         s.logic->storage.v.dy = 0.0;
++         s.logic->storage.radius = 5.0;
++         s.logic->storage.dead = false;
++         s.logic->storage.points = 10;
+ 
+          // EXERCISE
+          s.advance();
+@@ -315,32 +315,32 @@ class TestBird : public UnitTest
+          assertEqualsTolerance(
+             194.0, 194.0, tolerance
+          ); // explicit check of initial expectation (sanity)
+-         assertEqualsTolerance(50.0, s.pt.y, tolerance);
+-         assertEqualsTolerance(expectedDx, s.v.dx, tolerance);
+-         assertEqualsTolerance(expectedX, s.pt.x, tolerance);
+-         assertEqualsTolerance(5.0, s.radius, tolerance);
+-         assertUnit(s.dead == false);
+-         assertUnit(s.points == 10);
++         assertEqualsTolerance(50.0, s.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(expectedDx, s.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(expectedX, s.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(5.0, s.logic->storage.radius, tolerance);
++         assertUnit(s.logic->storage.dead == false);
++         assertUnit(s.logic->storage.points == 10);
+ 
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // Advance: Standard moves out of bounds and becomes dead
+       void test_advance_standardDead()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          Standard s(5.0, 10.0, 10); // will be overwritten explicitly
+-         s.pt.x = 196.0;
+-         s.pt.y = 60.0;
+-         s.v.dx = 10.0;
+-         s.v.dy = 0.0;
+-         s.radius = 5.0;
+-         s.dead = false;
+-         s.points = 10;
++         s.logic->storage.pt.x = 196.0;
++         s.logic->storage.pt.y = 60.0;
++         s.logic->storage.v.dx = 10.0;
++         s.logic->storage.v.dy = 0.0;
++         s.logic->storage.radius = 5.0;
++         s.logic->storage.dead = false;
++         s.logic->storage.points = 10;
+ 
+          // EXERCISE
+          s.advance();
+@@ -352,33 +352,33 @@ class TestBird : public UnitTest
+          assertEqualsTolerance(
+             196.0, 196.0, tolerance
+          ); // explicit check of initial expectation (sanity)
+-         assertEqualsTolerance(60.0, s.pt.y, tolerance);
+-         assertEqualsTolerance(expectedDx, s.v.dx, tolerance);
+-         assertEqualsTolerance(expectedX, s.pt.x, tolerance);
+-         assertEqualsTolerance(5.0, s.radius, tolerance);
++         assertEqualsTolerance(60.0, s.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(expectedDx, s.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(expectedX, s.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(5.0, s.logic->storage.radius, tolerance);
+          // moved out of bounds => dead true and points negated
+-         assertUnit(s.dead == true);
+-         assertUnit(s.points == -10);
++         assertUnit(s.logic->storage.dead == true);
++         assertUnit(s.logic->storage.points == -10);
+ 
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // Advance: Sinker stays alive after advance (within boundary)
+       void test_advance_sinkerAlive()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          Sinker s(5.0, 10.0, 10); // will be overwritten explicitly
+-         s.pt.x = 194.0;
+-         s.pt.y = 50.0;
+-         s.v.dx = 10.0;
+-         s.v.dy = 0.0;
+-         s.radius = 5.0;
+-         s.dead = false;
+-         s.points = 10;
++         s.logic->storage.pt.x = 194.0;
++         s.logic->storage.pt.y = 50.0;
++         s.logic->storage.v.dx = 10.0;
++         s.logic->storage.v.dy = 0.0;
++         s.logic->storage.radius = 5.0;
++         s.logic->storage.dead = false;
++         s.logic->storage.points = 10;
+ 
+          // EXERCISE
+          s.advance();
+@@ -393,33 +393,33 @@ class TestBird : public UnitTest
+             194.0, 194.0, tolerance
+          ); // explicit check of initial expectation
+          assertEqualsTolerance(50.0, 50.0, tolerance);
+-         assertEqualsTolerance(10.0, s.v.dx, tolerance);
+-         assertEqualsTolerance(expectedDy, s.v.dy, tolerance);
+-         assertEqualsTolerance(expectedX, s.pt.x, tolerance);
+-         assertEqualsTolerance(expectedY, s.pt.y, tolerance);
+-         assertEqualsTolerance(5.0, s.radius, tolerance);
+-         assertUnit(s.dead == false);
+-         assertUnit(s.points == 10);
++         assertEqualsTolerance(10.0, s.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(expectedDy, s.logic->storage.v.dy, tolerance);
++         assertEqualsTolerance(expectedX, s.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(expectedY, s.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(5.0, s.logic->storage.radius, tolerance);
++         assertUnit(s.logic->storage.dead == false);
++         assertUnit(s.logic->storage.points == 10);
+ 
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // Advance: Sinker moves out of bounds and becomes dead
+       void test_advance_sinkerDead()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          Sinker s(5.0, 10.0, 10); // will be overwritten explicitly
+-         s.pt.x = 196.0;
+-         s.pt.y = 60.0;
+-         s.v.dx = 10.0;
+-         s.v.dy = 0.0;
+-         s.radius = 5.0;
+-         s.dead = false;
+-         s.points = 10;
++         s.logic->storage.pt.x = 196.0;
++         s.logic->storage.pt.y = 60.0;
++         s.logic->storage.v.dx = 10.0;
++         s.logic->storage.v.dy = 0.0;
++         s.logic->storage.radius = 5.0;
++         s.logic->storage.dead = false;
++         s.logic->storage.points = 10;
+ 
+          // EXERCISE
+          s.advance();
+@@ -431,34 +431,34 @@ class TestBird : public UnitTest
+          // VERIFY
+          assertEqualsTolerance(196.0, 196.0, tolerance);
+          assertEqualsTolerance(60.0, 60.0, tolerance);
+-         assertEqualsTolerance(10.0, s.v.dx, tolerance);
+-         assertEqualsTolerance(expectedDy, s.v.dy, tolerance);
+-         assertEqualsTolerance(expectedX, s.pt.x, tolerance);
+-         assertEqualsTolerance(expectedY, s.pt.y, tolerance);
+-         assertEqualsTolerance(5.0, s.radius, tolerance);
++         assertEqualsTolerance(10.0, s.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(expectedDy, s.logic->storage.v.dy, tolerance);
++         assertEqualsTolerance(expectedX, s.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(expectedY, s.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(5.0, s.logic->storage.radius, tolerance);
+          // moved out of bounds => dead true and points negated
+-         assertUnit(s.dead == true);
+-         assertUnit(s.points == -10);
++         assertUnit(s.logic->storage.dead == true);
++         assertUnit(s.logic->storage.points == -10);
+ 
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // Advance: Floater stays alive after advance (within boundary)
+       void test_advance_floaterAlive()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          Floater f(5.0, 10.0, 15); // will be overwritten explicitly
+-         f.pt.x = 194.0;
+-         f.pt.y = 50.0;
+-         f.v.dx = 10.0;
+-         f.v.dy = 0.0;
+-         f.radius = 5.0;
+-         f.dead = false;
+-         f.points = 15;
++         f.logic->storage.pt.x = 194.0;
++         f.logic->storage.pt.y = 50.0;
++         f.logic->storage.v.dx = 10.0;
++         f.logic->storage.v.dy = 0.0;
++         f.logic->storage.radius = 5.0;
++         f.logic->storage.dead = false;
++         f.logic->storage.points = 15;
+ 
+          // EXERCISE
+          f.advance();
+@@ -474,33 +474,37 @@ class TestBird : public UnitTest
+          // VERIFY
+          assertEqualsTolerance(194.0, 194.0, tolerance);
+          assertEqualsTolerance(50.0, 50.0, tolerance);
+-         assertEqualsTolerance(expectedDxBeforeAdd, f.v.dx, tolerance);
+-         assertEqualsTolerance(expectedFinalDy, f.v.dy, tolerance);
+-         assertEqualsTolerance(expectedX, f.pt.x, tolerance);
+-         assertEqualsTolerance(expectedY, f.pt.y, tolerance);
+-         assertEqualsTolerance(5.0, f.radius, tolerance);
+-         assertUnit(f.dead == false);
+-         assertUnit(f.points == 15);
++         assertEqualsTolerance(
++            expectedDxBeforeAdd, f.logic->storage.v.dx, tolerance
++         );
++         assertEqualsTolerance(
++            expectedFinalDy, f.logic->storage.v.dy, tolerance
++         );
++         assertEqualsTolerance(expectedX, f.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(expectedY, f.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(5.0, f.logic->storage.radius, tolerance);
++         assertUnit(f.logic->storage.dead == false);
++         assertUnit(f.logic->storage.points == 15);
+ 
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // Advance: Floater moves out of bounds and becomes dead
+       void test_advance_floaterDead()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          Floater f(5.0, 10.0, 15); // will be overwritten explicitly
+-         f.pt.x = 196.0;
+-         f.pt.y = 60.0;
+-         f.v.dx = 10.0;
+-         f.v.dy = 0.0;
+-         f.radius = 5.0;
+-         f.dead = false;
+-         f.points = 15;
++         f.logic->storage.pt.x = 196.0;
++         f.logic->storage.pt.y = 60.0;
++         f.logic->storage.v.dx = 10.0;
++         f.logic->storage.v.dy = 0.0;
++         f.logic->storage.radius = 5.0;
++         f.logic->storage.dead = false;
++         f.logic->storage.points = 15;
+ 
+          // EXERCISE
+          f.advance();
+@@ -514,34 +518,38 @@ class TestBird : public UnitTest
+          // VERIFY
+          assertEqualsTolerance(196.0, 196.0, tolerance);
+          assertEqualsTolerance(60.0, 60.0, tolerance);
+-         assertEqualsTolerance(expectedDxBeforeAdd, f.v.dx, tolerance);
+-         assertEqualsTolerance(expectedFinalDy, f.v.dy, tolerance);
+-         assertEqualsTolerance(expectedX, f.pt.x, tolerance);
+-         assertEqualsTolerance(expectedY, f.pt.y, tolerance);
+-         assertEqualsTolerance(5.0, f.radius, tolerance);
++         assertEqualsTolerance(
++            expectedDxBeforeAdd, f.logic->storage.v.dx, tolerance
++         );
++         assertEqualsTolerance(
++            expectedFinalDy, f.logic->storage.v.dy, tolerance
++         );
++         assertEqualsTolerance(expectedX, f.logic->storage.pt.x, tolerance);
++         assertEqualsTolerance(expectedY, f.logic->storage.pt.y, tolerance);
++         assertEqualsTolerance(5.0, f.logic->storage.radius, tolerance);
+          // moved out of bounds => dead true and points negated
+-         assertUnit(f.dead == true);
+-         assertUnit(f.points == -15);
++         assertUnit(f.logic->storage.dead == true);
++         assertUnit(f.logic->storage.points == -15);
+ 
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // Advance: Crazy changes direction (random min) and remains alive
+       void test_advance_crazyAlive()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          Crazy c(5.0, 4.5, 30); // values will be overridden explicitly
+-         c.pt.x = 50.0;
+-         c.pt.y = 50.0;
+-         c.v.dx = 2.0;
+-         c.v.dy = 1.0;
+-         c.radius = 5.0;
+-         c.dead = false;
+-         c.points = 30;
++         c.logic->storage.pt.x = 50.0;
++         c.logic->storage.pt.y = 50.0;
++         c.logic->storage.v.dx = 2.0;
++         c.logic->storage.v.dy = 1.0;
++         c.logic->storage.radius = 5.0;
++         c.logic->storage.dead = false;
++         c.logic->storage.points = 30;
+ 
+          // EXERCISE
+          c.advance();
+@@ -549,58 +557,66 @@ class TestBird : public UnitTest
+          // VERIFY
+          // randomInt(0,15) returns 0 so v.addDx(randomDouble(-1.5,1.5)) adds
+          // -1.5
+-         assertEqualsTolerance(2.0 - 1.5, c.v.dx, tolerance);
+-         assertEqualsTolerance(1.0 - 1.5, c.v.dy, tolerance);
++         assertEqualsTolerance(2.0 - 1.5, c.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(1.0 - 1.5, c.logic->storage.v.dy, tolerance);
+ 
+          // position updated by the new velocity
+-         assertEqualsTolerance(50.0 + (2.0 - 1.5), c.pt.x, tolerance);
+-         assertEqualsTolerance(50.0 + (1.0 - 1.5), c.pt.y, tolerance);
++         assertEqualsTolerance(
++            50.0 + (2.0 - 1.5), c.logic->storage.pt.x, tolerance
++         );
++         assertEqualsTolerance(
++            50.0 + (1.0 - 1.5), c.logic->storage.pt.y, tolerance
++         );
+ 
+          // explicit checks of other members
+-         assertEqualsTolerance(5.0, c.radius, tolerance);
+-         assertUnit(c.dead == false);
+-         assertUnit(c.points == 30);
++         assertEqualsTolerance(5.0, c.logic->storage.radius, tolerance);
++         assertUnit(c.logic->storage.dead == false);
++         assertUnit(c.logic->storage.points == 30);
+ 
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+ 
+       // Advance: Crazy changes direction (random min) and moves out of bounds
+       // -> dead
+       void test_advance_crazyDead()
+       { // SETUP
+-         Position oldDimensions = Bird::dimensions;
+-         Bird::dimensions.x = 200.0;
+-         Bird::dimensions.y = 200.0;
++         Position oldDimensions = BirdStorage::dimensions;
++         BirdStorage::dimensions.x = 200.0;
++         BirdStorage::dimensions.y = 200.0;
+ 
+          Crazy c(5.0, 4.5, 30); // values will be overridden explicitly
+-         c.pt.x = 197.0;
+-         c.pt.y = 60.0;
+-         c.v.dx = 10.0;
+-         c.v.dy = 0.0;
+-         c.radius = 5.0;
+-         c.dead = false;
+-         c.points = 30;
++         c.logic->storage.pt.x = 197.0;
++         c.logic->storage.pt.y = 60.0;
++         c.logic->storage.v.dx = 10.0;
++         c.logic->storage.v.dy = 0.0;
++         c.logic->storage.radius = 5.0;
++         c.logic->storage.dead = false;
++         c.logic->storage.points = 30;
+ 
+          // EXERCISE
+          c.advance();
+ 
+          // VERIFY
+          // velocity changed by randomDouble(-1.5,1.5) => -1.5
+-         assertEqualsTolerance(10.0 - 1.5, c.v.dx, tolerance);
+-         assertEqualsTolerance(0.0 - 1.5, c.v.dy, tolerance);
++         assertEqualsTolerance(10.0 - 1.5, c.logic->storage.v.dx, tolerance);
++         assertEqualsTolerance(0.0 - 1.5, c.logic->storage.v.dy, tolerance);
+ 
+          // position updated by the new velocity
+-         assertEqualsTolerance(197.0 + (10.0 - 1.5), c.pt.x, tolerance);
+-         assertEqualsTolerance(60.0 + (0.0 - 1.5), c.pt.y, tolerance);
++         assertEqualsTolerance(
++            197.0 + (10.0 - 1.5), c.logic->storage.pt.x, tolerance
++         );
++         assertEqualsTolerance(
++            60.0 + (0.0 - 1.5), c.logic->storage.pt.y, tolerance
++         );
+ 
+          // moved out of bounds (x >= dimensions.x + radius) => dead true and
+          // points negated
+-         assertUnit(c.dead == true);
+-         assertUnit(c.points == -30);
+-         assertEqualsTolerance(5.0, c.radius, tolerance);
++         assertUnit(c.logic->storage.dead == true);
++         assertUnit(c.logic->storage.points == -30);
++         assertEqualsTolerance(5.0, c.logic->storage.radius, tolerance);
+ 
+          // TEARDOWN
+-         Bird::dimensions = oldDimensions;
++         BirdStorage::dimensions = oldDimensions;
+       }
+-};
+\ No newline at end of file
++};
+diff --git a/src/testSkeet.h b/src/testSkeet.h
+index 90d1a0d..672d6e9 100644
+--- a/src/testSkeet.h
++++ b/src/testSkeet.h
+@@ -72,7 +72,7 @@ class TestSkeet : public UnitTest
+ 
+          // Ensure Bird static dimensions are known for deterministic
+          // construction
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // Set the time to level 1 (spawn logic for level 1)
+          s.time.levelNumber = 1;
+@@ -99,16 +99,20 @@ class TestSkeet : public UnitTest
+             auto it = s.birds.begin();
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertUnit((*it)->dead == false);
+-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
+-            assertEquals(10, (*it)->points);
++            assertUnit((*it)->logic->storage.dead == false);
++            assertEqualsTolerance(
++               30.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(10, (*it)->logic->storage.points);
+ 
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertUnit((*it)->dead == false);
+-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
+-            assertEquals(10, (*it)->points);
++            assertUnit((*it)->logic->storage.dead == false);
++            assertEqualsTolerance(
++               30.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(10, (*it)->logic->storage.points);
+          }
+ 
+          // spawn() should not modify the time framesLeft
+@@ -144,7 +148,7 @@ class TestSkeet : public UnitTest
+          assert(s.points.empty() == true);
+ 
+          // Ensure Bird static dimensions for deterministic construction
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // Set the time to level 2 (spawn logic for level 2)
+          s.time.levelNumber = 2;
+@@ -166,23 +170,29 @@ class TestSkeet : public UnitTest
+             // first Standard
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
+-            assertEquals(12, (*it)->points);
++            assertEqualsTolerance(
++               25.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(12, (*it)->logic->storage.points);
+ 
+             // second Standard
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
+-            assertEquals(12, (*it)->points);
++            assertEqualsTolerance(
++               25.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(12, (*it)->logic->storage.points);
+ 
+             // Sinker
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
++            assertEqualsTolerance(
++               25.0, (*it)->logic->storage.radius, tolerance
++            );
+             // level2 used default Sinker(points) -> default in bird.h is 20
+-            assertEquals(20, (*it)->points);
++            assertEquals(20, (*it)->logic->storage.points);
+          }
+ 
+          // spawn() should not change time.framesLeft
+@@ -213,7 +223,7 @@ class TestSkeet : public UnitTest
+          assert(s.points.empty() == true);
+ 
+          // Ensure Bird static dimensions for deterministic construction
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // Set the time to level 3 (spawn logic for level 3)
+          s.time.levelNumber = 3;
+@@ -236,29 +246,37 @@ class TestSkeet : public UnitTest
+             // Standard #1
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
+-            assertEquals(15, (*it)->points);
++            assertEqualsTolerance(
++               20.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(15, (*it)->logic->storage.points);
+ 
+             // Standard #2
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
+-            assertEquals(15, (*it)->points);
++            assertEqualsTolerance(
++               20.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(15, (*it)->logic->storage.points);
+ 
+             // Sinker (explicit points 22 in spawn)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
+-            assertEquals(22, (*it)->points);
++            assertEqualsTolerance(
++               20.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(22, (*it)->logic->storage.points);
+ 
+             // Floater (default points)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Floater));
+-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
+-            assertEquals(15, (*it)->points);
++            assertEqualsTolerance(
++               20.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(15, (*it)->logic->storage.points);
+          }
+ 
+          // spawn() should not change time.framesLeft
+@@ -289,7 +307,7 @@ class TestSkeet : public UnitTest
+          assert(s.points.empty() == true);
+ 
+          // Ensure Bird static dimensions for deterministic construction
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // Set the time to level 4 (spawn logic for level 4)
+          s.time.levelNumber = 4;
+@@ -313,36 +331,46 @@ class TestSkeet : public UnitTest
+             // Standard #1
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(18, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(18, (*it)->logic->storage.points);
+ 
+             // Standard #2
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(18, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(18, (*it)->logic->storage.points);
+ 
+             // Sinker (explicit points 25)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(25, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(25, (*it)->logic->storage.points);
+ 
+             // Floater (explicit points 25)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Floater));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(25, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(25, (*it)->logic->storage.points);
+ 
+             // Crazy (default points 30)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Crazy));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(30, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(30, (*it)->logic->storage.points);
+          }
+ 
+          // spawn() should not change time.framesLeft
+@@ -391,7 +419,7 @@ class TestSkeet : public UnitTest
+          s.bullseye = true;
+ 
+          // Ensure Bird static dimensions for deterministic construction
+-         Bird::dimensions = s.dimensions;
++         BirdStorage::dimensions = s.dimensions;
+ 
+          // EXERCISE
+          s.animate();
+@@ -411,16 +439,20 @@ class TestSkeet : public UnitTest
+             auto it = s.birds.begin();
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertUnit((*it)->dead == false);
+-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
+-            assertEquals(10, (*it)->points);
++            assertUnit((*it)->logic->storage.dead == false);
++            assertEqualsTolerance(
++               30.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(10, (*it)->logic->storage.points);
+ 
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertUnit((*it)->dead == false);
+-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
+-            assertEquals(10, (*it)->points);
++            assertUnit((*it)->logic->storage.dead == false);
++            assertEqualsTolerance(
++               30.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(10, (*it)->logic->storage.points);
+          }
+ 
+          // Time should have advanced by one frame (framesLeft decremented)
+@@ -477,7 +509,7 @@ class TestSkeet : public UnitTest
+          s.bullseye = false;
+ 
+          // Ensure Bird static dimensions for deterministic construction
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // Set the time to level 2 (spawn logic for level 2)
+          s.time.levelNumber = 2;
+@@ -501,23 +533,29 @@ class TestSkeet : public UnitTest
+             // Standard #1
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
+-            assertEquals(12, (*it)->points);
++            assertEqualsTolerance(
++               25.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(12, (*it)->logic->storage.points);
+ 
+             // Standard #2
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
+-            assertEquals(12, (*it)->points);
++            assertEqualsTolerance(
++               25.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(12, (*it)->logic->storage.points);
+ 
+             // Sinker
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
++            assertEqualsTolerance(
++               25.0, (*it)->logic->storage.radius, tolerance
++            );
+             // default Sinker points (bird.h default is 20)
+-            assertEquals(20, (*it)->points);
++            assertEquals(20, (*it)->logic->storage.points);
+          }
+ 
+          // Time should have advanced by one frame (framesLeft decremented)
+@@ -569,7 +607,7 @@ class TestSkeet : public UnitTest
+          s.bullseye = true;
+ 
+          // Ensure Bird static dimensions for deterministic construction
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // Set the time to level 3 (spawn logic for level 3)
+          s.time.levelNumber = 3;
+@@ -593,29 +631,37 @@ class TestSkeet : public UnitTest
+             // Standard #1
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
+-            assertEquals(15, (*it)->points);
++            assertEqualsTolerance(
++               20.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(15, (*it)->logic->storage.points);
+ 
+             // Standard #2
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
+-            assertEquals(15, (*it)->points);
++            assertEqualsTolerance(
++               20.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(15, (*it)->logic->storage.points);
+ 
+             // Sinker (points explicitly 22 in spawn)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
+-            assertEquals(22, (*it)->points);
++            assertEqualsTolerance(
++               20.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(22, (*it)->logic->storage.points);
+ 
+             // Floater
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Floater));
+-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
+-            assertEquals(15, (*it)->points);
++            assertEqualsTolerance(
++               20.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(15, (*it)->logic->storage.points);
+          }
+ 
+          // Time should have advanced by one frame (framesLeft decremented)
+@@ -667,7 +713,7 @@ class TestSkeet : public UnitTest
+          s.bullseye = false;
+ 
+          // Ensure Bird static dimensions for deterministic construction
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // Set the time to level 4 (spawn logic for level 4)
+          s.time.levelNumber = 4;
+@@ -692,36 +738,46 @@ class TestSkeet : public UnitTest
+             // Standard #1
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(18, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(18, (*it)->logic->storage.points);
+ 
+             // Standard #2
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(18, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(18, (*it)->logic->storage.points);
+ 
+             // Sinker (explicit points 25)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(25, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(25, (*it)->logic->storage.points);
+ 
+             // Floater (explicit points 25)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Floater));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(25, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(25, (*it)->logic->storage.points);
+ 
+             // Crazy (default points 30)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Crazy));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(30, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(30, (*it)->logic->storage.points);
+          }
+ 
+          // spawn() should not change time.framesLeft
+@@ -752,28 +808,28 @@ class TestSkeet : public UnitTest
+          assert(s.points.empty() == true);
+ 
+          // Ensure Bird static dimensions for deterministic construction
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // Create two Standard birds and place them in the game
+          Standard *standard1 = new Standard(30.0); // will be adjusted below
+          Standard *standard2 = new Standard(30.0);
+ 
+          // Explicitly set positions and velocities (direct member access)
+-         standard1->pt.x = 50.0;
+-         standard1->pt.y = 30.0;
+-         standard1->v.dx = 5.0;
+-         standard1->v.dy = 2.0;
+-         standard1->dead = false;
+-         standard1->radius = 30.0;
+-         standard1->points = 10;
+-
+-         standard2->pt.x = 40.0;
+-         standard2->pt.y = 70.0;
+-         standard2->v.dx = 3.0;
+-         standard2->v.dy = -4.0;
+-         standard2->dead = false;
+-         standard2->radius = 30.0;
+-         standard2->points = 10;
++         standard1->logic->storage.pt.x = 50.0;
++         standard1->logic->storage.pt.y = 30.0;
++         standard1->logic->storage.v.dx = 5.0;
++         standard1->logic->storage.v.dy = 2.0;
++         standard1->logic->storage.dead = false;
++         standard1->logic->storage.radius = 30.0;
++         standard1->logic->storage.points = 10;
++
++         standard2->logic->storage.pt.x = 40.0;
++         standard2->logic->storage.pt.y = 70.0;
++         standard2->logic->storage.v.dx = 3.0;
++         standard2->logic->storage.v.dy = -4.0;
++         standard2->logic->storage.dead = false;
++         standard2->logic->storage.radius = 30.0;
++         standard2->logic->storage.points = 10;
+ 
+          // Add to skeet
+          s.birds.push_back(standard1);
+@@ -815,31 +871,53 @@ class TestSkeet : public UnitTest
+             // First bird: our b1 advanced
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(standard1Dx, (*it)->v.dx, tolerance);
+-            assertEqualsTolerance(standard1Dy, (*it)->v.dy, tolerance);
+-            assertEqualsTolerance(50.0 + standard1Dx, (*it)->pt.x, tolerance);
+-            assertEqualsTolerance(30.0 + standard1Dy, (*it)->pt.y, tolerance);
+-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
+-            assertEquals(10, (*it)->points);
++            assertEqualsTolerance(
++               standard1Dx, (*it)->logic->storage.v.dx, tolerance
++            );
++            assertEqualsTolerance(
++               standard1Dy, (*it)->logic->storage.v.dy, tolerance
++            );
++            assertEqualsTolerance(
++               50.0 + standard1Dx, (*it)->logic->storage.pt.x, tolerance
++            );
++            assertEqualsTolerance(
++               30.0 + standard1Dy, (*it)->logic->storage.pt.y, tolerance
++            );
++            assertEqualsTolerance(
++               30.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(10, (*it)->logic->storage.points);
+ 
+             // Second bird: our b2 advanced
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(standard2Dx, (*it)->v.dx, tolerance);
+-            assertEqualsTolerance(standard2Dy, (*it)->v.dy, tolerance);
+-            assertEqualsTolerance(40.0 + standard2Dx, (*it)->pt.x, tolerance);
+-            assertEqualsTolerance(70.0 + standard2Dy, (*it)->pt.y, tolerance);
+-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
+-            assertEquals(10, (*it)->points);
++            assertEqualsTolerance(
++               standard2Dx, (*it)->logic->storage.v.dx, tolerance
++            );
++            assertEqualsTolerance(
++               standard2Dy, (*it)->logic->storage.v.dy, tolerance
++            );
++            assertEqualsTolerance(
++               40.0 + standard2Dx, (*it)->logic->storage.pt.x, tolerance
++            );
++            assertEqualsTolerance(
++               70.0 + standard2Dy, (*it)->logic->storage.pt.y, tolerance
++            );
++            assertEqualsTolerance(
++               30.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(10, (*it)->logic->storage.points);
+ 
+             // Third bird: spawned Standard (deterministic)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertUnit((*it)->dead == false);
+-            assertEqualsTolerance(30.0, (*it)->radius, tolerance);
+-            assertEquals(10, (*it)->points);
++            assertUnit((*it)->logic->storage.dead == false);
++            assertEqualsTolerance(
++               30.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(10, (*it)->logic->storage.points);
+          }
+ 
+          // Time decremented
+@@ -879,28 +957,28 @@ class TestSkeet : public UnitTest
+          assert(s.effects.empty() == true);
+          assert(s.points.empty() == true);
+ 
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // create originals
+          Standard *standard = new Standard(30.0);
+          Sinker *sinker = new Sinker(25.0);
+ 
+          // set explicit positions/velocities and internals
+-         standard->pt.x = 50.0;
+-         standard->pt.y = 30.0;
+-         standard->v.dx = 5.0;
+-         standard->v.dy = 2.0;
+-         standard->dead = false;
+-         standard->radius = 301.0;
+-         standard->points = 31;
+-
+-         sinker->pt.x = 60.0;
+-         sinker->pt.y = 80.0;
+-         sinker->v.dx = 2.0;
+-         sinker->v.dy = -1.0;
+-         sinker->dead = false;
+-         sinker->radius = 303.0;
+-         sinker->points = 33;
++         standard->logic->storage.pt.x = 50.0;
++         standard->logic->storage.pt.y = 30.0;
++         standard->logic->storage.v.dx = 5.0;
++         standard->logic->storage.v.dy = 2.0;
++         standard->logic->storage.dead = false;
++         standard->logic->storage.radius = 301.0;
++         standard->logic->storage.points = 31;
++
++         sinker->logic->storage.pt.x = 60.0;
++         sinker->logic->storage.pt.y = 80.0;
++         sinker->logic->storage.v.dx = 2.0;
++         sinker->logic->storage.v.dy = -1.0;
++         sinker->logic->storage.dead = false;
++         sinker->logic->storage.radius = 303.0;
++         sinker->logic->storage.points = 33;
+ 
+          s.birds.push_back(standard);
+          s.birds.push_back(sinker);
+@@ -941,39 +1019,63 @@ class TestSkeet : public UnitTest
+             // st1 advanced
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(standardDx, (*it)->v.dx, tolerance);
+-            assertEqualsTolerance(standardDy, (*it)->v.dy, tolerance);
+-            assertEqualsTolerance(50.0 + standardDx, (*it)->pt.x, tolerance);
+-            assertEqualsTolerance(30.0 + standardDy, (*it)->pt.y, tolerance);
+-            assertEqualsTolerance(301.0, (*it)->radius, tolerance);
+-            assertEquals(31, (*it)->points);
++            assertEqualsTolerance(
++               standardDx, (*it)->logic->storage.v.dx, tolerance
++            );
++            assertEqualsTolerance(
++               standardDy, (*it)->logic->storage.v.dy, tolerance
++            );
++            assertEqualsTolerance(
++               50.0 + standardDx, (*it)->logic->storage.pt.x, tolerance
++            );
++            assertEqualsTolerance(
++               30.0 + standardDy, (*it)->logic->storage.pt.y, tolerance
++            );
++            assertEqualsTolerance(
++               301.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(31, (*it)->logic->storage.points);
+ 
+             // sk1 advanced
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertEqualsTolerance(sinkerDx, (*it)->v.dx, tolerance);
+-            assertEqualsTolerance(sinkerDy, (*it)->v.dy, tolerance);
+-            assertEqualsTolerance(60.0 + sinkerDx, (*it)->pt.x, tolerance);
+-            assertEqualsTolerance(80.0 + sinkerDy, (*it)->pt.y, tolerance);
+-            assertEqualsTolerance(303.0, (*it)->radius, tolerance);
+-            assertEquals(33, (*it)->points);
++            assertEqualsTolerance(
++               sinkerDx, (*it)->logic->storage.v.dx, tolerance
++            );
++            assertEqualsTolerance(
++               sinkerDy, (*it)->logic->storage.v.dy, tolerance
++            );
++            assertEqualsTolerance(
++               60.0 + sinkerDx, (*it)->logic->storage.pt.x, tolerance
++            );
++            assertEqualsTolerance(
++               80.0 + sinkerDy, (*it)->logic->storage.pt.y, tolerance
++            );
++            assertEqualsTolerance(
++               303.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(33, (*it)->logic->storage.points);
+ 
+             // spawned Standard
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertUnit((*it)->dead == false);
+-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
+-            assertEquals(12, (*it)->points);
++            assertUnit((*it)->logic->storage.dead == false);
++            assertEqualsTolerance(
++               25.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(12, (*it)->logic->storage.points);
+ 
+             // spawned Sinker
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertUnit((*it)->dead == false);
+-            assertEqualsTolerance(25.0, (*it)->radius, tolerance);
+-            assertEquals(20, (*it)->points);
++            assertUnit((*it)->logic->storage.dead == false);
++            assertEqualsTolerance(
++               25.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(20, (*it)->logic->storage.points);
+          }
+ 
+          // time decremented
+@@ -1002,7 +1104,7 @@ class TestSkeet : public UnitTest
+          assert(s.effects.empty() == true);
+          assert(s.points.empty() == true);
+ 
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // create originals
+          Standard *standard = new Standard(20.0);
+@@ -1010,29 +1112,29 @@ class TestSkeet : public UnitTest
+          Floater *floater = new Floater(20.0);
+ 
+          // explicit positions/velocities and internals for the first three
+-         standard->pt.x = 50.0;
+-         standard->pt.y = 30.0;
+-         standard->v.dx = 5.0;
+-         standard->v.dy = 2.0;
+-         standard->radius = 101;
+-         standard->points = 40;
+-         standard->dead = false;
+-
+-         sinker->pt.x = 60.0;
+-         sinker->pt.y = 80.0;
+-         sinker->v.dx = 2.0;
+-         sinker->v.dy = -1.0;
+-         sinker->dead = false;
+-         sinker->radius = 102;
+-         sinker->points = 41;
+-
+-         floater->pt.x = 20.0;
+-         floater->pt.y = 40.0;
+-         floater->v.dx = 1.0;
+-         floater->v.dy = 3.0;
+-         floater->dead = false;
+-         floater->radius = 103;
+-         floater->points = 42;
++         standard->logic->storage.pt.x = 50.0;
++         standard->logic->storage.pt.y = 30.0;
++         standard->logic->storage.v.dx = 5.0;
++         standard->logic->storage.v.dy = 2.0;
++         standard->logic->storage.radius = 101;
++         standard->logic->storage.points = 40;
++         standard->logic->storage.dead = false;
++
++         sinker->logic->storage.pt.x = 60.0;
++         sinker->logic->storage.pt.y = 80.0;
++         sinker->logic->storage.v.dx = 2.0;
++         sinker->logic->storage.v.dy = -1.0;
++         sinker->logic->storage.dead = false;
++         sinker->logic->storage.radius = 102;
++         sinker->logic->storage.points = 41;
++
++         floater->logic->storage.pt.x = 20.0;
++         floater->logic->storage.pt.y = 40.0;
++         floater->logic->storage.v.dx = 1.0;
++         floater->logic->storage.v.dy = 3.0;
++         floater->logic->storage.dead = false;
++         floater->logic->storage.radius = 103;
++         floater->logic->storage.points = 42;
+ 
+          s.birds.push_back(standard);
+          s.birds.push_back(sinker);
+@@ -1076,59 +1178,89 @@ class TestSkeet : public UnitTest
+             // st1 advanced
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(50.0 + standardDx, (*it)->pt.x, tolerance);
+-            assertEqualsTolerance(30.0 + standardDy, (*it)->pt.y, tolerance);
++            assertEqualsTolerance(
++               50.0 + standardDx, (*it)->logic->storage.pt.x, tolerance
++            );
++            assertEqualsTolerance(
++               30.0 + standardDy, (*it)->logic->storage.pt.y, tolerance
++            );
+             // verify velocity stored on the object after advance
+-            assertEqualsTolerance(standardDx, (*it)->v.dx, tolerance);
+-            assertEqualsTolerance(standardDy, (*it)->v.dy, tolerance);
+-            assertEqualsTolerance(101, (*it)->radius, tolerance);
+-            assertEquals(40, (*it)->points);
++            assertEqualsTolerance(
++               standardDx, (*it)->logic->storage.v.dx, tolerance
++            );
++            assertEqualsTolerance(
++               standardDy, (*it)->logic->storage.v.dy, tolerance
++            );
++            assertEqualsTolerance(101, (*it)->logic->storage.radius, tolerance);
++            assertEquals(40, (*it)->logic->storage.points);
+ 
+             // sk1 advanced
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertEqualsTolerance(60.0 + sinkerDx, (*it)->pt.x, tolerance);
+-            assertEqualsTolerance(80.0 + sinkerDy, (*it)->pt.y, tolerance);
++            assertEqualsTolerance(
++               60.0 + sinkerDx, (*it)->logic->storage.pt.x, tolerance
++            );
++            assertEqualsTolerance(
++               80.0 + sinkerDy, (*it)->logic->storage.pt.y, tolerance
++            );
+             // verify sinker velocity stored on the object after advance
+-            assertEqualsTolerance(sinkerDx, (*it)->v.dx, tolerance);
+-            assertEqualsTolerance(sinkerDy, (*it)->v.dy, tolerance);
+-            assertEqualsTolerance(102, (*it)->radius, tolerance);
+-            assertEquals(41, (*it)->points);
++            assertEqualsTolerance(
++               sinkerDx, (*it)->logic->storage.v.dx, tolerance
++            );
++            assertEqualsTolerance(
++               sinkerDy, (*it)->logic->storage.v.dy, tolerance
++            );
++            assertEqualsTolerance(102, (*it)->logic->storage.radius, tolerance);
++            assertEquals(41, (*it)->logic->storage.points);
+ 
+             // fl1 advanced
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Floater));
+             // verify floater position after advance
+-            assertEqualsTolerance(20.0 + floaterDx, (*it)->pt.x, tolerance);
+-            assertEqualsTolerance(40.0 + floaterDy, (*it)->pt.y, tolerance);
++            assertEqualsTolerance(
++               20.0 + floaterDx, (*it)->logic->storage.pt.x, tolerance
++            );
++            assertEqualsTolerance(
++               40.0 + floaterDy, (*it)->logic->storage.pt.y, tolerance
++            );
+             // verify floater final stored velocity (dy includes +0.05)
+-            assertEqualsTolerance(floaterDx, (*it)->v.dx, tolerance);
+-            assertEqualsTolerance(floaterDy + 0.05, (*it)->v.dy, tolerance);
+-            assertEqualsTolerance(103, (*it)->radius, tolerance);
+-            assertEquals(42, (*it)->points);
++            assertEqualsTolerance(
++               floaterDx, (*it)->logic->storage.v.dx, tolerance
++            );
++            assertEqualsTolerance(
++               floaterDy + 0.05, (*it)->logic->storage.v.dy, tolerance
++            );
++            assertEqualsTolerance(103, (*it)->logic->storage.radius, tolerance);
++            assertEquals(42, (*it)->logic->storage.points);
+ 
+             // spawned Standard (size=20)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
+-            assertEquals(15, (*it)->points);
++            assertEqualsTolerance(
++               20.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(15, (*it)->logic->storage.points);
+ 
+             // spawned Sinker (size=20, points=22)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
+-            assertEquals(22, (*it)->points);
++            assertEqualsTolerance(
++               20.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(22, (*it)->logic->storage.points);
+ 
+             // spawned Floater #2 (size=20)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Floater));
+-            assertEqualsTolerance(20.0, (*it)->radius, tolerance);
+-            assertEquals(15, (*it)->points);
++            assertEqualsTolerance(
++               20.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(15, (*it)->logic->storage.points);
+          }
+ 
+          assertEquals(FRAMES_PER_SECOND * 15 - 1, s.time.framesLeft);
+@@ -1157,7 +1289,7 @@ class TestSkeet : public UnitTest
+          assert(s.effects.empty() == true);
+          assert(s.points.empty() == true);
+ 
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // create originals
+          Standard *standard = new Standard(15.0);
+@@ -1166,37 +1298,37 @@ class TestSkeet : public UnitTest
+          Crazy *crazy = new Crazy(15.0);
+ 
+          // explicit positions/velocities and internals for the initial four
+-         standard->pt.x = 50.0;
+-         standard->pt.y = 30.0;
+-         standard->v.dx = 5.0;
+-         standard->v.dy = 2.0;
+-         standard->dead = false;
+-         standard->radius = 15.1;
+-         standard->points = 60;
+-
+-         sinker->pt.x = 60.0;
+-         sinker->pt.y = 80.0;
+-         sinker->v.dx = 2.0;
+-         sinker->v.dy = -1.0;
+-         sinker->dead = false;
+-         sinker->radius = 15.2;
+-         sinker->points = 61;
+-
+-         floater->pt.x = 20.0;
+-         floater->pt.y = 40.0;
+-         floater->v.dx = 1.0;
+-         floater->v.dy = 3.0;
+-         floater->dead = false;
+-         floater->radius = 15.3;
+-         floater->points = 62;
+-
+-         crazy->pt.x = 25.0;
+-         crazy->pt.y = 50.0;
+-         crazy->v.dx = 4.0;
+-         crazy->v.dy = 1.0;
+-         crazy->dead = false;
+-         crazy->radius = 15.4;
+-         crazy->points = 63;
++         standard->logic->storage.pt.x = 50.0;
++         standard->logic->storage.pt.y = 30.0;
++         standard->logic->storage.v.dx = 5.0;
++         standard->logic->storage.v.dy = 2.0;
++         standard->logic->storage.dead = false;
++         standard->logic->storage.radius = 15.1;
++         standard->logic->storage.points = 60;
++
++         sinker->logic->storage.pt.x = 60.0;
++         sinker->logic->storage.pt.y = 80.0;
++         sinker->logic->storage.v.dx = 2.0;
++         sinker->logic->storage.v.dy = -1.0;
++         sinker->logic->storage.dead = false;
++         sinker->logic->storage.radius = 15.2;
++         sinker->logic->storage.points = 61;
++
++         floater->logic->storage.pt.x = 20.0;
++         floater->logic->storage.pt.y = 40.0;
++         floater->logic->storage.v.dx = 1.0;
++         floater->logic->storage.v.dy = 3.0;
++         floater->logic->storage.dead = false;
++         floater->logic->storage.radius = 15.3;
++         floater->logic->storage.points = 62;
++
++         crazy->logic->storage.pt.x = 25.0;
++         crazy->logic->storage.pt.y = 50.0;
++         crazy->logic->storage.v.dx = 4.0;
++         crazy->logic->storage.v.dy = 1.0;
++         crazy->logic->storage.dead = false;
++         crazy->logic->storage.radius = 15.4;
++         crazy->logic->storage.points = 63;
+ 
+          s.birds.push_back(standard);
+          s.birds.push_back(sinker);
+@@ -1244,75 +1376,123 @@ class TestSkeet : public UnitTest
+             // st1 advanced
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(50.0 + standardDx, (*it)->pt.x, tolerance);
+-            assertEqualsTolerance(30.0 + standardDy, (*it)->pt.y, tolerance);
+-            assertEqualsTolerance(standardDx, (*it)->v.dx, tolerance);
+-            assertEqualsTolerance(standardDy, (*it)->v.dy, tolerance);
+-            assertEqualsTolerance(15.1, (*it)->radius, tolerance);
+-            assertEquals(60, (*it)->points);
++            assertEqualsTolerance(
++               50.0 + standardDx, (*it)->logic->storage.pt.x, tolerance
++            );
++            assertEqualsTolerance(
++               30.0 + standardDy, (*it)->logic->storage.pt.y, tolerance
++            );
++            assertEqualsTolerance(
++               standardDx, (*it)->logic->storage.v.dx, tolerance
++            );
++            assertEqualsTolerance(
++               standardDy, (*it)->logic->storage.v.dy, tolerance
++            );
++            assertEqualsTolerance(
++               15.1, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(60, (*it)->logic->storage.points);
+ 
+             // sk1 advanced
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertEqualsTolerance(60.0 + sinkerDx, (*it)->pt.x, tolerance);
+-            assertEqualsTolerance(80.0 + sinkerDy, (*it)->pt.y, tolerance);
+-            assertEqualsTolerance(sinkerDx, (*it)->v.dx, tolerance);
+-            assertEqualsTolerance(sinkerDy, (*it)->v.dy, tolerance);
+-            assertEqualsTolerance(15.2, (*it)->radius, tolerance);
+-            assertEquals(61, (*it)->points);
++            assertEqualsTolerance(
++               60.0 + sinkerDx, (*it)->logic->storage.pt.x, tolerance
++            );
++            assertEqualsTolerance(
++               80.0 + sinkerDy, (*it)->logic->storage.pt.y, tolerance
++            );
++            assertEqualsTolerance(
++               sinkerDx, (*it)->logic->storage.v.dx, tolerance
++            );
++            assertEqualsTolerance(
++               sinkerDy, (*it)->logic->storage.v.dy, tolerance
++            );
++            assertEqualsTolerance(
++               15.2, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(61, (*it)->logic->storage.points);
+ 
+             // fl1 advanced
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Floater));
+             // verify floater position after advance
+-            assertEqualsTolerance(20.0 + floaterDx, (*it)->pt.x, tolerance);
+-            assertEqualsTolerance(40.0 + floaterDy, (*it)->pt.y, tolerance);
++            assertEqualsTolerance(
++               20.0 + floaterDx, (*it)->logic->storage.pt.x, tolerance
++            );
++            assertEqualsTolerance(
++               40.0 + floaterDy, (*it)->logic->storage.pt.y, tolerance
++            );
+             // verify floater final stored velocity (dy includes +0.05)
+-            assertEqualsTolerance(floaterDx, (*it)->v.dx, tolerance);
+-            assertEqualsTolerance(floaterDy + 0.05, (*it)->v.dy, tolerance);
+-            assertEqualsTolerance(15.3, (*it)->radius, tolerance);
+-            assertEquals(62, (*it)->points);
++            assertEqualsTolerance(
++               floaterDx, (*it)->logic->storage.v.dx, tolerance
++            );
++            assertEqualsTolerance(
++               floaterDy + 0.05, (*it)->logic->storage.v.dy, tolerance
++            );
++            assertEqualsTolerance(
++               15.3, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(62, (*it)->logic->storage.points);
+ 
+             // cr1 advanced
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Crazy));
+-            assertEqualsTolerance(25.0 + crazyDx, (*it)->pt.x, tolerance);
+-            assertEqualsTolerance(50.0 + crazyDy, (*it)->pt.y, tolerance);
+-            assertEqualsTolerance(crazyDx, (*it)->v.dx, tolerance);
+-            assertEqualsTolerance(crazyDy, (*it)->v.dy, tolerance);
+-            assertEqualsTolerance(15.4, (*it)->radius, tolerance);
+-            assertEquals(63, (*it)->points);
++            assertEqualsTolerance(
++               25.0 + crazyDx, (*it)->logic->storage.pt.x, tolerance
++            );
++            assertEqualsTolerance(
++               50.0 + crazyDy, (*it)->logic->storage.pt.y, tolerance
++            );
++            assertEqualsTolerance(
++               crazyDx, (*it)->logic->storage.v.dx, tolerance
++            );
++            assertEqualsTolerance(
++               crazyDy, (*it)->logic->storage.v.dy, tolerance
++            );
++            assertEqualsTolerance(
++               15.4, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(63, (*it)->logic->storage.points);
+ 
+             // spawned Standard (size=15, points=18)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Standard));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(18, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(18, (*it)->logic->storage.points);
+ 
+             // spawned Sinker (size=15, points=25)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Sinker));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(25, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(25, (*it)->logic->storage.points);
+ 
+             // spawned Floater (size=15, points=25)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Floater));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(25, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(25, (*it)->logic->storage.points);
+ 
+             // spawned Crazy (size=15, points=30)
+             ++it;
+             assert(it != s.birds.end());
+             assertUnit(typeid(*(*it)) == typeid(Crazy));
+-            assertEqualsTolerance(15.0, (*it)->radius, tolerance);
+-            assertEquals(30, (*it)->points);
++            assertEqualsTolerance(
++               15.0, (*it)->logic->storage.radius, tolerance
++            );
++            assertEquals(30, (*it)->logic->storage.points);
+          }
+ 
+          assertEquals(FRAMES_PER_SECOND * 15 - 1, s.time.framesLeft);
+@@ -1551,7 +1731,7 @@ class TestSkeet : public UnitTest
+          assert(s.points.empty() == true);
+ 
+          // Ensure Bird static dimensions for deterministic construction
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // Explicitly set the gun (there will be a gun but no bullets created)
+          s.gun.angle = 0.42;
+@@ -1677,7 +1857,7 @@ class TestSkeet : public UnitTest
+          assert(s.points.empty() == true);
+ 
+          // Ensure Bird static dimensions for deterministic construction
+-         Bird::dimensions = dimensions;
++         BirdStorage::dimensions = dimensions;
+ 
+          // Explicitly set the gun so we can observe the elevation
+          s.gun.angle = 0.30; // initial angle
+@@ -2790,4 +2970,4 @@ class TestSkeet : public UnitTest
+          s.bullets.clear();
+          s.effects.clear();
+       }
+-};
+\ No newline at end of file
++};
