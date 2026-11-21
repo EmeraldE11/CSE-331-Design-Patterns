@@ -33,6 +33,118 @@ using namespace std;
 #endif // _WIN32
 
 /************************
+ * DELEGATE EXECUTE FUNCTION (bird overload)
+ ************************/
+void execute(void (*callback)(Bird&), Bird& bird)
+{
+   callback(bird);
+}
+
+/************************
+ * DELEGATE EXECUTE FUNCTION (bullet overload)
+ ************************/
+void execute(void (*callback)(Bullet&), Bullet& bullet)
+{
+   callback(bullet);
+}
+
+/************************
+ * DELEGATE EXECUTE FUNCTION (effect overload)
+ ************************/
+void execute(void (*callback)(Effect&), Effect& effect)
+{
+   callback(effect);
+}
+
+/************************
+ * DELEGATE EXECUTE FUNCTION (bullet with MULTIPLE EFFECTS overload)
+ ************************/
+void execute(void (*callback)(Bullet&, std::list<Effect*>&), Bullet& bullet, std::list<Effect*>& effects)
+{
+   callback(bullet, effects);
+}
+
+/************************
+ * DELEGATE EXECUTE FUNCTION (gun overload)
+ ************************/
+void execute(void (*callback)(const Gun&), const Gun& gun)
+{
+   callback(gun);
+}
+
+/************************
+ * DELEGATE DRAW ORDER (bird)
+ ************************/
+void drawBird(Bird& bird)
+{
+   bird.draw();
+}
+
+/************************
+ * DELEGATE DRAW ORDER (bullet)
+ ************************/
+void drawBullet(Bullet& bullet)
+{
+   bullet.output();
+}
+
+/************************
+ * DELEGATE DRAW ORDER (effect)
+ ************************/
+void drawEffect(Effect& effect)
+{
+   effect.render();
+}
+
+/************************
+ * DELEGATE DRAW ORDER (gun)
+ ************************/
+void drawGun(const Gun& gun)
+{
+   gun.display();
+}
+
+/************************
+ * DELEGATE ADVANCE ORDER (bird)
+ ************************/
+void advanceBird(Bird& bird)
+{
+   bird.advance();
+}
+
+/************************
+ * DELEGATE ADVANCE ORDER (bullet)
+ ************************/
+void advanceBullet(Bullet& bullet, std::list<Effect*>& effects)
+{
+   bullet.move(effects);
+}
+
+/************************
+ * DELEGATE ADVANCE ORDER (effect)
+ ************************/
+void advanceEffect(Effect& effect)
+{
+   effect.fly();
+}
+
+/************************
+ * DELEGATE KILL ORDER (bird)
+ ************************/
+void killBird(Bird& bird)
+{
+   bird.kill();
+}
+
+/************************
+ * DELEGATE KILL ORDER (bullet)
+ ************************/
+void killBullet(Bullet& bullet)
+{
+   bullet.kill();
+}
+
+/************************
  * SKEET ANIMATE
  * move the gameplay by one unit of time
  ************************/
@@ -57,13 +169,13 @@ void Skeet::animate()
    // move the birds and the bullets
    for (auto & element : birds)
    {
-      element->advance();
+      execute(advanceBird, *element);
       hitRatio.adjust(element->isDead() ? -1 : 0);
    }
    for (auto & bullet : bullets)
-      bullet->move(effects);
+      execute(advanceBullet, *bullet, effects);
    for (auto & effect : effects)
-      effect->fly();
+      execute(advanceEffect, *effect);
    for (auto & pts : points)
       pts.update();
       
@@ -77,8 +189,8 @@ void Skeet::animate()
          {
             for (int i = 0; i < 25; i++)
                effects.push_back(new Fragment(bullet->getPosition(), bullet->getVelocity()));
-            element->kill();
-            bullet->kill();
+            execute(killBird, *element);
+            execute(killBullet, *bullet);
             hitRatio.adjust(1);
             bullet->setValue(-(element->getPoints()));
             element->setPoints(0);
@@ -301,17 +413,17 @@ void Skeet::drawLevel() const
       drawBullseye(gun.getAngle());
 
    // output the gun
-   gun.display();
+   execute(drawGun, gun);
          
    // output the birds, bullets, and fragments
    for (auto& pts : points)
       pts.show();
    for (auto effect : effects)
-      effect->render();
+      execute(drawEffect, *effect);
    for (auto bullet : bullets)
-      bullet->output();
+      execute(drawBullet, *bullet);
    for (auto element : birds)
-      element->draw();
+      execute(drawBird, *element);
    
    // status
    drawText(Position(10,                         dimensions.getY() - 30), score.getText()  );
