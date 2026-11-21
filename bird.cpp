@@ -10,6 +10,8 @@
 #include <cassert>
 #include "bird.h"
 #include "random.h"
+#include <vector>
+#include <string>
 
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
@@ -258,57 +260,139 @@ static void drawDisk(const Position& center, double radius,
    glEnd();
 }
 
+
+/*
+ * Interpret a drawing command and draw the correct bird.
+ */
+static void drawIt(const std::vector<std::string>& command)
+{
+   // Make sure the command has enough information
+   if (command.size() < 4)
+      return;
+
+   // Convert the command strings into numbers
+   double x = std::stod(command[1]);
+   double y = std::stod(command[2]);
+   double r = std::stod(command[3]);
+
+   // Create the bird's position
+   Position pt(x, y);
+
+   // Draw a standard bird
+   if (command[0] == "STANDARD")
+   {
+      drawDisk(pt, r, 1.0, 1.0, 1.0);       // White outline
+      drawDisk(pt, r - 3.0, 0.0, 0.0, 1.0); // Blue center
+   }
+
+   // Draw a floater bird
+   else if (command[0] == "FLOATER")
+   {
+      drawDisk(pt, r, 0.0, 0.0, 1.0);       // Blue outline
+      drawDisk(pt, r - 4.0, 1.0, 1.0, 1.0); // White center
+   }
+
+   // Draw a sinker bird
+   else if (command[0] == "SINKER")
+   {
+      drawDisk(pt, r, 0.0, 0.0, 0.8);       // Dark blue outline
+      drawDisk(pt, r - 4.0, 0.0, 0.0, 0.0); // Black center
+   }
+
+   // Draw a crazy bird
+   else if (command[0] == "CRAZY")
+   {
+      drawDisk(pt, r * 1.0, 0.0, 0.0, 1.0);
+      drawDisk(pt, r * 0.8, 0.2, 0.2, 1.0);
+      drawDisk(pt, r * 0.6, 0.4, 0.4, 1.0);
+      drawDisk(pt, r * 0.4, 0.6, 0.6, 1.0);
+      drawDisk(pt, r * 0.2, 0.8, 0.8, 1.0);
+   }
+}
+
+
+
 /*********************************************
  * STANDARD DRAW
- * Draw a standard bird: blue center and white outline
+ * Send standard bird instructions.
  *********************************************/
 void Standard::draw()
 {
    if (!isDead())
    {
-      drawDisk(pt, radius - 0.0, 1.0, 1.0, 1.0); // white outline
-      drawDisk(pt, radius - 3.0, 0.0, 0.0, 1.0); // blue center
+      // Create a command with type, position, and radius
+      std::vector<std::string> command;
+
+      command.push_back("STANDARD");
+      command.push_back(std::to_string(pt.getX()));
+      command.push_back(std::to_string(pt.getY()));
+      command.push_back(std::to_string(radius));
+
+      // Send the command to the interpreter
+      drawIt(command);
    }
 }
 
+
 /*********************************************
  * FLOATER DRAW
- * Draw a floating bird: white center and blue outline
+ * Send floater bird instructions.
  *********************************************/
 void Floater::draw()
 {
    if (!isDead())
    {
-      drawDisk(pt, radius - 0.0, 0.0, 0.0, 1.0); // blue outline
-      drawDisk(pt, radius - 4.0, 1.0, 1.0, 1.0); // white center
+      // Create the drawing command
+      std::vector<std::string> command;
+
+      command.push_back("FLOATER");
+      command.push_back(std::to_string(pt.getX()));
+      command.push_back(std::to_string(pt.getY()));
+      command.push_back(std::to_string(radius));
+
+      // Send the command to the interpreter
+      drawIt(command);
    }
 }
 
 /*********************************************
  * CRAZY DRAW
- * Draw a crazy bird: concentric circles in a course gradient
+ * Send crazy bird instructions.
  *********************************************/
 void Crazy::draw()
 {
    if (!isDead())
    {
-      drawDisk(pt, radius * 1.0, 0.0, 0.0, 1.0); // bright blue outside
-      drawDisk(pt, radius * 0.8, 0.2, 0.2, 1.0);
-      drawDisk(pt, radius * 0.6, 0.4, 0.4, 1.0);
-      drawDisk(pt, radius * 0.4, 0.6, 0.6, 1.0);
-      drawDisk(pt, radius * 0.2, 0.8, 0.8, 1.0); // almost white inside
+      // Create the drawing command
+      std::vector<std::string> command;
+
+      command.push_back("CRAZY");
+      command.push_back(std::to_string(pt.getX()));
+      command.push_back(std::to_string(pt.getY()));
+      command.push_back(std::to_string(radius));
+
+      // Send the command to the interpreter
+      drawIt(command);
    }
 }
 
 /*********************************************
  * SINKER DRAW
- * Draw a sinker bird: black center and dark blue outline
+ * Send sinker bird instructions.
  *********************************************/
 void Sinker::draw()
 {
    if (!isDead())
    {
-      drawDisk(pt, radius - 0.0, 0.0, 0.0, 0.8);
-      drawDisk(pt, radius - 4.0, 0.0, 0.0, 0.0);
+      // Create the drawing command
+      std::vector<std::string> command;
+
+      command.push_back("SINKER");
+      command.push_back(std::to_string(pt.getX()));
+      command.push_back(std::to_string(pt.getY()));
+      command.push_back(std::to_string(radius));
+
+      // Send the command to the interpreter
+      drawIt(command);
    }
 }
